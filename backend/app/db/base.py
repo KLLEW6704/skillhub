@@ -5,4 +5,4 @@ class Base(DeclarativeBase):
     pass
 
 
-from app.models import portfolio, profile, skill, user  # noqa: E402,F401
+from app.models import portfolio, profile, project, skill, user  # noqa: E402,F401

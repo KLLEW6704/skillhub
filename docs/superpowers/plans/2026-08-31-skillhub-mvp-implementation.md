@@ -328,7 +328,7 @@ git commit -m "feat: add portfolio uploads"
 - Modify: `backend/app/api/v1/router.py`
 - Create: `backend/tests/test_projects_admin.py`
 
-- [ ] **Step 1: Write failing project tests**
+- [x] **Step 1: Write failing project tests**
 
 Cover requester creation, student creation rejection, creator-only editing while pending, admin approval/rejection, non-admin audit rejection, and public filtering by keyword/category/skill/deadline.
 
@@ -340,24 +340,24 @@ def test_approved_project_appears_in_public_hall(client, requester_project, admi
     assert [item["id"] for item in response.json()["items"]] == [requester_project.id]
 ```
 
-- [ ] **Step 2: Run and verify RED**
+- [x] **Step 2: Run and verify RED**
 
 ```powershell
 ./.venv/Scripts/python -m pytest tests/test_projects_admin.py -v
 ```
 
-- [ ] **Step 3: Implement project and admin endpoints**
+- [x] **Step 3: Implement project and admin endpoints**
 
 Expose public `GET /projects` and `GET /projects/{id}`; requester `POST /projects`, `GET /projects/mine`, `PATCH /projects/{id}`; admin `GET /admin/stats`, `GET /admin/users`, `PATCH /admin/users/{id}/status`, `GET /admin/projects`, and approve/reject actions. Use an association table for required skill names. Keep `audit_status` independent from `lifecycle_status`.
 
-- [ ] **Step 4: Verify GREEN**
+- [x] **Step 4: Verify GREEN**
 
 ```powershell
 ./.venv/Scripts/python -m pytest tests/test_projects_admin.py -v
 ./.venv/Scripts/python -m pytest -q
 ```
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```powershell
 git add backend/app backend/tests

@@ -80,6 +80,25 @@ def requester_headers(requester_user: User) -> dict[str, str]:
 
 
 @pytest.fixture
+def admin_user(db_session: Session) -> User:
+    user = User(
+        username="admin",
+        email="admin@example.com",
+        password_hash=hash_password("Student123!"),
+        role=UserRole.admin,
+    )
+    db_session.add(user)
+    db_session.commit()
+    db_session.refresh(user)
+    return user
+
+
+@pytest.fixture
+def admin_headers(admin_user: User) -> dict[str, str]:
+    return {"Authorization": f"Bearer {create_access_token(admin_user)}"}
+
+
+@pytest.fixture
 def student_skill(db_session: Session, student_user: User) -> Skill:
     skill = Skill(
         user_id=student_user.id,
