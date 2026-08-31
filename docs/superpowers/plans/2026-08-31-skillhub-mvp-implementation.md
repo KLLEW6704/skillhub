@@ -77,11 +77,11 @@ SkillHub/
 - Create: `backend/tests/conftest.py`
 - Create: `backend/tests/test_health.py`
 
-- [ ] **Step 1: Declare the backend package and dependencies**
+- [x] **Step 1: Declare the backend package and dependencies**
 
 Create `backend/pyproject.toml` with Python 3.11+ and these runtime dependencies: `fastapi`, `uvicorn[standard]`, `sqlalchemy`, `pydantic-settings`, `python-multipart`, `PyJWT`, `pwdlib[argon2]`, `email-validator`. Add `pytest`, `pytest-cov`, and `httpx` to the `dev` extra. Configure Pytest with `pythonpath = ["."]` and `testpaths = ["tests"]`.
 
-- [ ] **Step 2: Write the failing health test**
+- [x] **Step 2: Write the failing health test**
 
 ```python
 def test_health(client):
@@ -90,7 +90,7 @@ def test_health(client):
     assert response.json() == {"status": "ok", "service": "skillhub-api"}
 ```
 
-- [ ] **Step 3: Run the test and verify RED**
+- [x] **Step 3: Run the test and verify RED**
 
 Run from `backend/`:
 
@@ -102,7 +102,7 @@ python -m venv .venv
 
 Expected: collection/import failure because `app.main` does not exist.
 
-- [ ] **Step 4: Implement the minimal application factory**
+- [x] **Step 4: Implement the minimal application factory**
 
 `backend/app/core/config.py` must expose a cached `Settings` object with `app_name`, `api_prefix`, `database_url`, `jwt_secret`, `access_token_minutes`, `frontend_origin`, `upload_dir`, and `max_upload_mb`. `backend/app/main.py` must create FastAPI, add CORS for the configured frontend origin, create `/api/v1/health`, create the upload directory, and mount `/uploads` as static files.
 
@@ -112,7 +112,7 @@ def health() -> dict[str, str]:
     return {"status": "ok", "service": "skillhub-api"}
 ```
 
-- [ ] **Step 5: Run the focused test and full backend test command**
+- [x] **Step 5: Run the focused test and full backend test command**
 
 ```powershell
 ./.venv/Scripts/python -m pytest tests/test_health.py -v
@@ -121,7 +121,7 @@ def health() -> dict[str, str]:
 
 Expected: one passing test and no warnings caused by application code.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```powershell
 git add backend
