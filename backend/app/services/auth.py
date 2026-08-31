@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 from app.core.security import hash_password, verify_password
 from app.models.user import User
 from app.schemas.auth import RegistrationRequest
+from app.services.profiles import create_profile_for_user
 
 
 def register_user(db: Session, payload: RegistrationRequest) -> User | None:
@@ -19,6 +20,8 @@ def register_user(db: Session, payload: RegistrationRequest) -> User | None:
         password_hash=hash_password(payload.password),
     )
     db.add(user)
+    db.flush()
+    create_profile_for_user(db, user)
     db.commit()
     db.refresh(user)
     return user

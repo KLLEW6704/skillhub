@@ -5,4 +5,4 @@ class Base(DeclarativeBase):
     pass
 
 
-from app.models import user  # noqa: E402,F401
+from app.models import profile, skill, user  # noqa: E402,F401

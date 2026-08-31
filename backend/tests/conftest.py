@@ -55,6 +55,30 @@ def student_user(db_session: Session) -> User:
 
 
 @pytest.fixture
+def student_headers(student_user: User) -> dict[str, str]:
+    return {"Authorization": f"Bearer {create_access_token(student_user)}"}
+
+
+@pytest.fixture
+def requester_user(db_session: Session) -> User:
+    user = User(
+        username="requester",
+        email="requester@example.com",
+        password_hash=hash_password("Student123!"),
+        role=UserRole.requester,
+    )
+    db_session.add(user)
+    db_session.commit()
+    db_session.refresh(user)
+    return user
+
+
+@pytest.fixture
+def requester_headers(requester_user: User) -> dict[str, str]:
+    return {"Authorization": f"Bearer {create_access_token(requester_user)}"}
+
+
+@pytest.fixture
 def inactive_token(db_session: Session) -> str:
     user = User(
         username="inactive",

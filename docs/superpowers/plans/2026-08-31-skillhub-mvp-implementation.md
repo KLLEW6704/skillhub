@@ -220,7 +220,7 @@ git commit -m "feat: add authentication and role guards"
 - Modify: `backend/app/api/v1/router.py`
 - Create: `backend/tests/test_profiles_skills.py`
 
-- [ ] **Step 1: Write failing profile and skill tests**
+- [x] **Step 1: Write failing profile and skill tests**
 
 Test that student registration creates an editable `StudentProfile`, requester registration creates `RequesterProfile`, a student can add a unique skill, a requester receives 403 from skill mutation, duplicate normalized names return 409, and public profile output contains skill level and growth score.
 
@@ -232,13 +232,13 @@ def test_student_adds_skill(client, student_headers):
     assert response.json()["growth_score"] == 0
 ```
 
-- [ ] **Step 2: Run and verify RED**
+- [x] **Step 2: Run and verify RED**
 
 ```powershell
 ./.venv/Scripts/python -m pytest tests/test_profiles_skills.py -v
 ```
 
-- [ ] **Step 3: Implement profiles and skill CRUD**
+- [x] **Step 3: Implement profiles and skill CRUD**
 
 Expose:
 
@@ -250,14 +250,14 @@ Expose:
 
 Normalize skill names with `name.strip()` for display and a lowercased normalized column for uniqueness. Delete must be rejected with 409 when the skill still has portfolio evidence.
 
-- [ ] **Step 4: Verify GREEN**
+- [x] **Step 4: Verify GREEN**
 
 ```powershell
 ./.venv/Scripts/python -m pytest tests/test_profiles_skills.py -v
 ./.venv/Scripts/python -m pytest -q
 ```
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```powershell
 git add backend/app backend/tests
