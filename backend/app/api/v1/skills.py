@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 
 from app.api.deps import get_db, require_roles
 from app.models.skill import Skill
+from app.models.portfolio import Portfolio
 from app.models.user import User, UserRole
 from app.schemas.skill import SkillCreate, SkillResponse, SkillUpdate
 
@@ -90,5 +91,7 @@ def delete_skill(
     db: Session = Depends(get_db),
 ) -> None:
     skill = owned_skill(db, current_user, skill_id)
+    if db.scalar(select(Portfolio).where(Portfolio.skill_id == skill.id)):
+        raise HTTPException(status_code=409, detail="技能仍有关联作品，不能删除")
     db.delete(skill)
     db.commit()

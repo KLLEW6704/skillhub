@@ -11,6 +11,7 @@ from app.core.security import create_access_token, hash_password
 from app.db.base import Base
 from app.main import app
 from app.models.user import User, UserRole
+from app.models.skill import Skill
 
 
 @pytest.fixture
@@ -76,6 +77,46 @@ def requester_user(db_session: Session) -> User:
 @pytest.fixture
 def requester_headers(requester_user: User) -> dict[str, str]:
     return {"Authorization": f"Bearer {create_access_token(requester_user)}"}
+
+
+@pytest.fixture
+def student_skill(db_session: Session, student_user: User) -> Skill:
+    skill = Skill(
+        user_id=student_user.id,
+        name="摄影",
+        normalized_name="摄影",
+        description="校园活动记录",
+    )
+    db_session.add(skill)
+    db_session.commit()
+    db_session.refresh(skill)
+    return skill
+
+
+@pytest.fixture
+def other_student_skill(db_session: Session) -> Skill:
+    user = User(
+        username="other_student",
+        email="other@student.example.com",
+        password_hash=hash_password("Student123!"),
+        role=UserRole.student,
+    )
+    db_session.add(user)
+    db_session.flush()
+    skill = Skill(
+        user_id=user.id,
+        name="设计",
+        normalized_name="设计",
+    )
+    db_session.add(skill)
+    db_session.commit()
+    db_session.refresh(skill)
+    return skill
+
+
+@pytest.fixture
+def tiny_png() -> bytes:
+    return b"\x89PNG\r\n\x1a\n" + b"test-image"
 
 
 @pytest.fixture

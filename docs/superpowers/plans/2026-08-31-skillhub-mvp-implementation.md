@@ -276,7 +276,7 @@ git commit -m "feat: add profiles and skills"
 - Create: `backend/uploads/.gitkeep`
 - Create: `backend/tests/test_portfolios.py`
 
-- [ ] **Step 1: Write failing upload tests**
+- [x] **Step 1: Write failing upload tests**
 
 Create multipart tests for a permitted PNG, a rejected executable, an oversized stream, a skill owned by another student, and portfolio deletion. Assert the stored filename is generated rather than using `../../photo.png`.
 
@@ -292,24 +292,24 @@ def test_upload_portfolio_adds_skill_evidence(client, student_headers, student_s
     assert response.json()["file_url"].startswith("/uploads/")
 ```
 
-- [ ] **Step 2: Run and verify RED**
+- [x] **Step 2: Run and verify RED**
 
 ```powershell
 ./.venv/Scripts/python -m pytest tests/test_portfolios.py -v
 ```
 
-- [ ] **Step 3: Implement safe local uploads**
+- [x] **Step 3: Implement safe local uploads**
 
 Allow image, video, PDF, DOC/DOCX, PPT/PPTX MIME/extension pairs. Stream to disk while counting bytes; stop and remove the partial file when the configured limit is exceeded. Generate `uuid4` filenames and return relative `/uploads/<name>` URLs. On portfolio deletion, remove the database record and its owned local file.
 
-- [ ] **Step 4: Verify GREEN**
+- [x] **Step 4: Verify GREEN**
 
 ```powershell
 ./.venv/Scripts/python -m pytest tests/test_portfolios.py -v
 ./.venv/Scripts/python -m pytest -q
 ```
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```powershell
 git add backend/app backend/tests backend/uploads/.gitkeep
