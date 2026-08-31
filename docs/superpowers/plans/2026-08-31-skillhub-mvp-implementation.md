@@ -142,7 +142,7 @@ git commit -m "feat: scaffold SkillHub API"
 - Modify: `backend/app/main.py`
 - Create: `backend/tests/test_auth.py`
 
-- [ ] **Step 1: Write failing authentication tests**
+- [x] **Step 1: Write failing authentication tests**
 
 Cover these separate behaviors:
 
@@ -170,7 +170,7 @@ def test_inactive_user_cannot_access_me(client, inactive_token):
     assert client.get("/api/v1/auth/me", headers={"Authorization": f"Bearer {inactive_token}"}).status_code == 403
 ```
 
-- [ ] **Step 2: Run and verify RED**
+- [x] **Step 2: Run and verify RED**
 
 ```powershell
 ./.venv/Scripts/python -m pytest tests/test_auth.py -v
@@ -178,7 +178,7 @@ def test_inactive_user_cannot_access_me(client, inactive_token):
 
 Expected: endpoint/model import failures.
 
-- [ ] **Step 3: Implement the user model and authentication API**
+- [x] **Step 3: Implement the user model and authentication API**
 
 Create `UserRole` with `student`, `requester`, `admin`; create a unique username/email `User` model; hash passwords through `PasswordHash.recommended()`; issue JWTs with `sub`, `role`, and `exp`; implement `POST /register`, form-encoded `POST /login`, and `GET /me`. Registration schema must allow only `student` and `requester`.
 
@@ -193,14 +193,14 @@ def require_roles(*roles: UserRole):
     return dependency
 ```
 
-- [ ] **Step 4: Verify GREEN and regression suite**
+- [x] **Step 4: Verify GREEN and regression suite**
 
 ```powershell
 ./.venv/Scripts/python -m pytest tests/test_auth.py -v
 ./.venv/Scripts/python -m pytest -q
 ```
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```powershell
 git add backend/app backend/tests

@@ -14,7 +14,7 @@ class Settings(BaseSettings):
     app_name: str = "SkillHub API"
     api_prefix: str = "/api/v1"
     database_url: str = "sqlite:///./skillhub.db"
-    jwt_secret: str = "change-me-before-production"
+    jwt_secret: str = "change-me-before-production-32-bytes"
     access_token_minutes: int = 30
     frontend_origin: str = "http://localhost:5173"
     upload_dir: Path = Path("uploads")
