@@ -423,7 +423,7 @@ git commit -m "feat: add applications and project workflow"
 - Modify: `backend/app/api/v1/router.py`
 - Create: `backend/tests/test_reviews_growth.py`
 
-- [ ] **Step 1: Write failing review and level tests**
+- [x] **Step 1: Write failing review and level tests**
 
 Write separate tests for score range, non-owner, non-accepted student, duplicate review, application completion, automatic project completion after all accepted students are reviewed, and these growth boundaries:
 
@@ -438,13 +438,13 @@ def test_growth_combines_portfolio_project_and_review(db_session, completed_evid
     assert skill.level == 2
 ```
 
-- [ ] **Step 2: Run and verify RED**
+- [x] **Step 2: Run and verify RED**
 
 ```powershell
 ./.venv/Scripts/python -m pytest tests/test_reviews_growth.py -v
 ```
 
-- [ ] **Step 3: Implement one authoritative growth service**
+- [x] **Step 3: Implement one authoritative growth service**
 
 Implement:
 
@@ -461,14 +461,14 @@ def level_for_score(score: int) -> int:
 
 `recalculate_skill` must count portfolios for the skill, completed accepted applications whose project required skills match the normalized skill name, and the matching reviews' four-score average multiplied by three. Call it after portfolio create/delete and review create. Expose `POST /projects/{project_id}/reviews/{student_id}` and public/student review reads.
 
-- [ ] **Step 4: Verify GREEN**
+- [x] **Step 4: Verify GREEN**
 
 ```powershell
 ./.venv/Scripts/python -m pytest tests/test_reviews_growth.py -v
 ./.venv/Scripts/python -m pytest -q --cov=app --cov-report=term-missing
 ```
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```powershell
 git add backend/app backend/tests

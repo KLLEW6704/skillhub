@@ -8,6 +8,7 @@ from app.models.portfolio import Portfolio
 from app.models.skill import Skill
 from app.models.user import User
 from app.services.uploads import remove_upload, save_upload
+from app.services.growth import recalculate_skill
 
 
 async def create_portfolio(
@@ -36,6 +37,8 @@ async def create_portfolio(
     )
     try:
         db.add(portfolio)
+        db.flush()
+        recalculate_skill(db, skill.id)
         db.commit()
         db.refresh(portfolio)
     except BaseException:
@@ -55,6 +58,9 @@ def delete_portfolio(
     if portfolio is None:
         raise HTTPException(status_code=404, detail="作品不存在")
     file_url = portfolio.file_url
+    skill_id = portfolio.skill_id
     db.delete(portfolio)
+    db.flush()
+    recalculate_skill(db, skill_id)
     db.commit()
     remove_upload(upload_dir, file_url)
