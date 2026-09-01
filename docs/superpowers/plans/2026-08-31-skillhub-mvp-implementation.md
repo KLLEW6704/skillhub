@@ -640,28 +640,28 @@ git commit -m "feat: add public project and talent discovery"
 - Create: `frontend/src/features/student/SkillsPage.test.tsx`
 - Modify: `frontend/src/app/router.tsx`
 
-- [ ] **Step 1: Write failing student-workspace tests**
+- [x] **Step 1: Write failing student-workspace tests**
 
 Test create-skill submission, duplicate-name error display, multipart portfolio upload progress, delete confirmation behavior, and grouping applications by status.
 
-- [ ] **Step 2: Run and verify RED**
+- [x] **Step 2: Run and verify RED**
 
 ```powershell
 npm run test -- --run src/features/student/SkillsPage.test.tsx
 ```
 
-- [ ] **Step 3: Implement student screens**
+- [x] **Step 3: Implement student screens**
 
 The overview shows each skill's level, score, and next threshold. Skills page shows the three evidence sources. Portfolio upload requires a skill and file. Applications page links back to project details and reflects pending/accepted/rejected/finished states.
 
-- [ ] **Step 4: Verify GREEN and build**
+- [x] **Step 4: Verify GREEN and build**
 
 ```powershell
 npm run test -- --run
 npm run build
 ```
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```powershell
 git add frontend/src

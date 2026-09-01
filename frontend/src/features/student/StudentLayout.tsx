@@ -1,0 +1,2 @@
+import { NavLink,Outlet } from 'react-router-dom'
+export function StudentLayout(){return <div className="workspace"><aside><p className="eyebrow">STUDENT ARCHIVE</p><h2>我的工作台</h2>{[['/student','成长概览'],['/student/profile','个人资料'],['/student/skills','技能管理'],['/student/portfolios','作品管理'],['/student/applications','我的申请']].map(([to,label])=><NavLink end={to==='/student'} to={to} key={to}>{label}</NavLink>)}</aside><div className="workspace-main"><Outlet/></div></div>}
