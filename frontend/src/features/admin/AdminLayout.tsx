@@ -1,0 +1,1 @@
+import{NavLink,Outlet}from'react-router-dom';export function AdminLayout(){return <div className="workspace"><aside><p className="eyebrow">ADMIN ARCHIVE</p><h2>管理后台</h2><NavLink end to="/admin">数据概览</NavLink><NavLink to="/admin/users">用户管理</NavLink><NavLink to="/admin/projects">项目审核</NavLink></aside><div className="workspace-main"><Outlet/></div></div>}

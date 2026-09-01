@@ -718,28 +718,28 @@ git commit -m "feat: add requester project workflow"
 - Create: `frontend/src/features/admin/ProjectsPage.test.tsx`
 - Modify: `frontend/src/app/router.tsx`
 
-- [ ] **Step 1: Write failing admin tests**
+- [x] **Step 1: Write failing admin tests**
 
 Test that pending projects render approve/reject controls, approved projects do not, user status changes require confirmation, and non-admin routes redirect to 403.
 
-- [ ] **Step 2: Run and verify RED**
+- [x] **Step 2: Run and verify RED**
 
 ```powershell
 npm run test -- --run src/features/admin/ProjectsPage.test.tsx
 ```
 
-- [ ] **Step 3: Implement admin overview and moderation**
+- [x] **Step 3: Implement admin overview and moderation**
 
 Display user/project/application/completion counts, a filterable user table, and a filterable project table. Keep actions compact and clearly labeled; show mutation results with toasts and refresh affected queries.
 
-- [ ] **Step 4: Verify GREEN and build**
+- [x] **Step 4: Verify GREEN and build**
 
 ```powershell
 npm run test -- --run
 npm run build
 ```
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```powershell
 git add frontend/src
