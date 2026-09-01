@@ -376,7 +376,7 @@ git commit -m "feat: add projects and moderation"
 - Modify: `backend/app/api/v1/router.py`
 - Create: `backend/tests/test_applications.py`
 
-- [ ] **Step 1: Write failing workflow tests**
+- [x] **Step 1: Write failing workflow tests**
 
 Test student application, duplicate rejection, requester-role rejection, expired-project rejection, creator-only acceptance/rejection, start-without-member rejection, and ordered transitions `recruiting → in_progress → awaiting_review`.
 
@@ -387,24 +387,24 @@ def test_project_owner_accepts_application(client, requester_headers, pending_ap
     assert response.json()["status"] == "accepted"
 ```
 
-- [ ] **Step 2: Run and verify RED**
+- [x] **Step 2: Run and verify RED**
 
 ```powershell
 ./.venv/Scripts/python -m pytest tests/test_applications.py -v
 ```
 
-- [ ] **Step 3: Implement application and transition services**
+- [x] **Step 3: Implement application and transition services**
 
 Expose `POST /projects/{id}/applications`, `GET /applications/mine`, `GET /projects/{id}/applications`, accept/reject actions, and `POST /projects/{id}/start` plus `POST /projects/{id}/finish-work`. Enforce ownership and exact predecessor state in one service function.
 
-- [ ] **Step 4: Verify GREEN**
+- [x] **Step 4: Verify GREEN**
 
 ```powershell
 ./.venv/Scripts/python -m pytest tests/test_applications.py -v
 ./.venv/Scripts/python -m pytest -q
 ```
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```powershell
 git add backend/app backend/tests

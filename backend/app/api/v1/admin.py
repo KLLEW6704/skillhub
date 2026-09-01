@@ -3,6 +3,7 @@ from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_db, require_roles
+from app.models.application import Application
 from app.models.project import AuditStatus, LifecycleStatus, Project
 from app.models.user import User, UserRole
 from app.schemas.admin import AdminStats, UserStatusUpdate
@@ -17,7 +18,7 @@ admin_only = require_roles(UserRole.admin)
 
 @router.get("/stats", response_model=AdminStats)
 def stats(_: User = Depends(admin_only), db: Session = Depends(get_db)):
-    return {"users": db.scalar(select(func.count(User.id))) or 0, "projects": db.scalar(select(func.count(Project.id))) or 0, "applications": 0, "completed_projects": db.scalar(select(func.count(Project.id)).where(Project.lifecycle_status == LifecycleStatus.completed)) or 0}
+    return {"users": db.scalar(select(func.count(User.id))) or 0, "projects": db.scalar(select(func.count(Project.id))) or 0, "applications": db.scalar(select(func.count(Application.id))) or 0, "completed_projects": db.scalar(select(func.count(Project.id)).where(Project.lifecycle_status == LifecycleStatus.completed)) or 0}
 
 
 @router.get("/users", response_model=list[UserResponse])
