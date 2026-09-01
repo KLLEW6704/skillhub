@@ -482,7 +482,7 @@ git commit -m "feat: add reviews and skill growth"
 - Create: `backend/tests/test_seed.py`
 - Modify: `backend/pyproject.toml`
 
-- [ ] **Step 1: Write the failing seed test**
+- [x] **Step 1: Write the failing seed test**
 
 ```python
 def test_seed_is_idempotent(db_session):
@@ -494,17 +494,17 @@ def test_seed_is_idempotent(db_session):
     assert first_counts["projects"] >= 4
 ```
 
-- [ ] **Step 2: Run and verify RED**
+- [x] **Step 2: Run and verify RED**
 
 ```powershell
 ./.venv/Scripts/python -m pytest tests/test_seed.py -v
 ```
 
-- [ ] **Step 3: Implement demo identities and scenarios**
+- [x] **Step 3: Implement demo identities and scenarios**
 
 Seed `admin/Student123!`, `student/Student123!`, `designer/Student123!`, and `campus_org/Student123!` with clearly documented usernames. Include approved recruiting, pending-audit, in-progress, and completed projects; skills, local placeholder file URLs, accepted/rejected applications, and reviews. Identify records by stable unique usernames/titles so reruns do not duplicate data.
 
-- [ ] **Step 4: Verify GREEN and run the seed command against a fresh file DB**
+- [x] **Step 4: Verify GREEN and run the seed command against a fresh file DB**
 
 ```powershell
 ./.venv/Scripts/python -m pytest tests/test_seed.py -v
@@ -515,7 +515,7 @@ Remove-Item -LiteralPath ./skillhub.db -ErrorAction SilentlyContinue
 
 Expected: both seed runs exit 0 and record counts remain stable.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```powershell
 git add backend
