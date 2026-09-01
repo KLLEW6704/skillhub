@@ -600,28 +600,28 @@ git commit -m "feat: scaffold SkillHub frontend and auth"
 - Create: `frontend/src/components/RatingSummary.tsx`
 - Create: `frontend/src/features/public/ProjectsPage.test.tsx`
 
-- [ ] **Step 1: Write failing discovery tests**
+- [x] **Step 1: Write failing discovery tests**
 
 Test that skill/category filters produce the expected query parameters, expired projects render a closed application state, and a public profile renders skill level, portfolio, project history, and review averages.
 
-- [ ] **Step 2: Run and verify RED**
+- [x] **Step 2: Run and verify RED**
 
 ```powershell
 npm run test -- --run src/features/public/ProjectsPage.test.tsx
 ```
 
-- [ ] **Step 3: Implement public pages with real API data**
+- [x] **Step 3: Implement public pages with real API data**
 
 Use TanStack Query keys that include filters. The homepage must show a numbered growth-loop hero, recommended project cards, popular skill counts, and highlighted students. Use semantic headings, keyboard-accessible controls, skeleton loading, and useful empty states.
 
-- [ ] **Step 4: Verify GREEN and build**
+- [x] **Step 4: Verify GREEN and build**
 
 ```powershell
 npm run test -- --run
 npm run build
 ```
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```powershell
 git add frontend/src

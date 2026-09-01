@@ -1,0 +1,7 @@
+import { useQuery } from '@tanstack/react-query'
+import { useParams } from 'react-router-dom'
+import { RatingSummary } from '../../components/RatingSummary'
+import { SkillLevel } from '../../components/SkillLevel'
+import { apiRequest } from '../../lib/api'
+import type { Review,StudentProfile } from '../../lib/types'
+export function ProfilePage(){const {id}=useParams();const profile=useQuery({queryKey:['student',id],queryFn:()=>apiRequest<StudentProfile>(`/api/v1/profiles/students/${id}`)});const reviews=useQuery({queryKey:['reviews',id],queryFn:()=>apiRequest<Review[]>(`/api/v1/profiles/students/${id}/reviews`)});if(profile.isLoading)return <div className="page-state">读取成长档案…</div>;if(!profile.data)return <div className="page-state">档案不存在</div>;const p=profile.data;return <section className="profile-page"><header><p className="eyebrow">PUBLIC GROWTH FILE · {p.username}</p><h1>{p.display_name}</h1><p>{p.school} · {p.college} · {p.major} · {p.grade}</p><blockquote>{p.bio||'这位同学正在用真实实践丰富自己的技能档案。'}</blockquote></header><div className="profile-sections"><section><div className="section-title"><span>01</span><h2>技能成长</h2></div>{p.skills.length?p.skills.map(s=><SkillLevel skill={s} key={s.id}/>):<div className="empty-inline">尚未添加技能</div>}</section><section><div className="section-title"><span>02</span><h2>项目评价</h2></div><RatingSummary reviews={reviews.data||[]}/>{reviews.data?.map(r=><blockquote className="review-quote" key={r.id}>{r.comment||'项目评价已记录'}</blockquote>)}</section></div></section>}
