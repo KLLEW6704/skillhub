@@ -539,7 +539,7 @@ git commit -m "feat: add SkillHub demo data"
 - Create: `frontend/src/test/setup.ts`
 - Create: `frontend/src/features/auth/auth-store.test.tsx`
 
-- [ ] **Step 1: Scaffold and install frontend dependencies**
+- [x] **Step 1: Scaffold and install frontend dependencies**
 
 ```powershell
 npm create vite@latest frontend -- --template react-ts
@@ -552,7 +552,7 @@ npx tailwindcss init -p
 
 Add `"test": "vitest"` to `package.json`, configure `environment: "jsdom"` and `setupFiles: ["./src/test/setup.ts"]` in `vite.config.ts`, and start/reset/close the MSW server from the Vitest setup file.
 
-- [ ] **Step 2: Write a failing auth-state test**
+- [x] **Step 2: Write a failing auth-state test**
 
 ```tsx
 it('restores the current user when a saved token exists', async () => {
@@ -563,24 +563,24 @@ it('restores the current user when a saved token exists', async () => {
 })
 ```
 
-- [ ] **Step 3: Run and verify RED**
+- [x] **Step 3: Run and verify RED**
 
 ```powershell
 npm run test -- --run src/features/auth/auth-store.test.tsx
 ```
 
-- [ ] **Step 4: Implement providers, API client, routes, and auth screens**
+- [x] **Step 4: Implement providers, API client, routes, and auth screens**
 
 The API client must attach the saved Bearer token, parse FastAPI `detail`, clear auth on 401, and expose typed helpers. `ProtectedRoute` accepts allowed roles. Implement the “成长档案馆” variables in CSS: warm paper background, ink green, amber, brick, serif display type, subtle paper grid, square/low-radius cards, visible focus states, and reduced-motion rules.
 
-- [ ] **Step 5: Verify GREEN, typecheck, and build**
+- [x] **Step 5: Verify GREEN, typecheck, and build**
 
 ```powershell
 npm run test -- --run
 npm run build
 ```
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```powershell
 git add frontend
