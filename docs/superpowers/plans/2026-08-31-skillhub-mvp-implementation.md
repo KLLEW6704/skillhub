@@ -680,28 +680,28 @@ git commit -m "feat: add student skill workspace"
 - Create: `frontend/src/features/requester/MyProjectsPage.test.tsx`
 - Modify: `frontend/src/app/router.tsx`
 
-- [ ] **Step 1: Write failing requester-workflow tests**
+- [x] **Step 1: Write failing requester-workflow tests**
 
 Test required skill entry, pending-audit messaging, ownership action visibility, accept/reject mutations, state transition button availability, four scores constrained to 1–5, and duplicate review error display.
 
-- [ ] **Step 2: Run and verify RED**
+- [x] **Step 2: Run and verify RED**
 
 ```powershell
 npm run test -- --run src/features/requester/MyProjectsPage.test.tsx
 ```
 
-- [ ] **Step 3: Implement requester pages**
+- [x] **Step 3: Implement requester pages**
 
 Project cards must distinguish audit status from lifecycle status. Applicants page shows student skills, work samples, application message, and clear accept/reject actions. Review page shows one form per accepted student and completion progress.
 
-- [ ] **Step 4: Verify GREEN and build**
+- [x] **Step 4: Verify GREEN and build**
 
 ```powershell
 npm run test -- --run
 npm run build
 ```
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```powershell
 git add frontend/src

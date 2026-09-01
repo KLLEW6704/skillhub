@@ -1,0 +1,1 @@
+import{NavLink,Outlet}from'react-router-dom';export function RequesterLayout(){return <div className="workspace"><aside><p className="eyebrow">REQUESTER DESK</p><h2>项目工作台</h2><NavLink end to="/requester">项目概览</NavLink><NavLink to="/requester/new">发布项目</NavLink><NavLink to="/requester/projects">我的项目</NavLink></aside><div className="workspace-main"><Outlet/></div></div>}
