@@ -22,6 +22,9 @@ DEMO_PASSWORD = "Student123!"
 def ensure_user(db: Session, username: str, email: str, role: UserRole, **fields) -> User:
     user = db.scalar(select(User).where(User.username == username))
     if user:
+        if user.email != email:
+            user.email = email
+            db.flush()
         return user
     user = User(username=username, email=email, password_hash=hash_password(DEMO_PASSWORD), role=role, **fields)
     db.add(user); db.flush()
@@ -72,10 +75,10 @@ def ensure_application(db: Session, project: Project, student: User, status: App
 
 
 def seed_database(db: Session) -> None:
-    ensure_user(db, "admin", "admin@skillhub.local", UserRole.admin)
-    student = ensure_user(db, "student", "student@skillhub.local", UserRole.student, school="SkillHub 大学", college="计算机学院", major="数据科学", grade="2025")
-    designer = ensure_user(db, "designer", "designer@skillhub.local", UserRole.student, school="SkillHub 大学", college="设计学院", major="视觉传达", grade="2024")
-    requester = ensure_user(db, "campus_org", "campus_org@skillhub.local", UserRole.requester)
+    ensure_user(db, "admin", "admin@skillhub.example.com", UserRole.admin)
+    student = ensure_user(db, "student", "student@skillhub.example.com", UserRole.student, school="SkillHub 大学", college="计算机学院", major="数据科学", grade="2025")
+    designer = ensure_user(db, "designer", "designer@skillhub.example.com", UserRole.student, school="SkillHub 大学", college="设计学院", major="视觉传达", grade="2024")
+    requester = ensure_user(db, "campus_org", "campus_org@skillhub.example.com", UserRole.requester)
 
     python_skill = ensure_skill(db, student, "Python", "数据处理、接口开发与自动化")
     design_skill = ensure_skill(db, designer, "视觉设计", "校园品牌与活动视觉设计")

@@ -39,3 +39,19 @@ def test_seed_creates_documented_demo_accounts(db_session):
     usernames = set(db_session.scalars(select(User.username)))
 
     assert {"admin", "student", "designer", "campus_org"} <= usernames
+
+
+def test_seeded_student_can_login_and_read_current_user(client, db_session):
+    seed_database(db_session)
+    login = client.post(
+        "/api/v1/auth/login",
+        data={"username": "student", "password": "Student123!"},
+    )
+
+    response = client.get(
+        "/api/v1/auth/me",
+        headers={"Authorization": f"Bearer {login.json()['access_token']}"},
+    )
+
+    assert response.status_code == 200
+    assert response.json()["username"] == "student"

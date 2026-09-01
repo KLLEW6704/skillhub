@@ -4,6 +4,7 @@
 __pycache__/
 *.py[cod]
 backend/skillhub.db
+backend/.coverage
 backend/.test-tmp*/
 backend/uploads/*
 !backend/uploads/.gitkeep

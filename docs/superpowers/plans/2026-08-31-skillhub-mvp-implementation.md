@@ -758,7 +758,7 @@ git commit -m "feat: add SkillHub admin workspace"
 - Modify: `frontend/src/app/router.tsx`
 - Modify: `frontend/src/styles/index.css`
 
-- [ ] **Step 1: Write the runbook before final verification**
+- [x] **Step 1: Write the runbook before final verification**
 
 README must contain:
 
@@ -771,11 +771,11 @@ README must contain:
 - A six-step classroom demo script: admin approval → student application → requester acceptance → project start/finish → review → skill-level update.
 - Clear second-stage extension notes for PostgreSQL, object storage, and AI agents.
 
-- [ ] **Step 2: Configure local development integration**
+- [x] **Step 2: Configure local development integration**
 
 Set Vite `/api` and `/uploads` proxies to FastAPI. Confirm frontend URLs use relative API paths so the same build can be reverse-proxied later. Add `.env.example` values without real secrets.
 
-- [ ] **Step 3: Run fresh backend verification**
+- [x] **Step 3: Run fresh backend verification**
 
 ```powershell
 Set-Location backend
@@ -785,7 +785,7 @@ Set-Location backend
 
 Expected: zero failures; seed exits 0.
 
-- [ ] **Step 4: Run fresh frontend verification**
+- [x] **Step 4: Run fresh frontend verification**
 
 ```powershell
 Set-Location ../frontend
