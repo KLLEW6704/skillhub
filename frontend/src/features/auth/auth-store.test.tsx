@@ -1,7 +1,8 @@
 import { render, screen } from '@testing-library/react'
 import { HttpResponse, http } from 'msw'
 import { expect, it } from 'vitest'
-import { AuthProvider, useAuth } from './auth-store'
+import { AuthProvider } from './auth-store'
+import { useAuth } from './use-auth'
 import { server } from '../../test/server'
 
 function AuthProbe() {

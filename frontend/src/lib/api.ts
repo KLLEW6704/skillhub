@@ -34,4 +34,13 @@ export async function apiRequest<T>(path: string, init: RequestInit = {}): Promi
   return response.json() as Promise<T>
 }
 
+export async function apiBlob(path: string): Promise<Blob> {
+  const headers = new Headers()
+  const token = localStorage.getItem(TOKEN_KEY)
+  if (token) headers.set('Authorization', `Bearer ${token}`)
+  const response = await fetch(path, { headers })
+  if (!response.ok) throw new ApiError(response.status, '无法读取作品文件')
+  return response.blob()
+}
+
 export { TOKEN_KEY }

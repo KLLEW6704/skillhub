@@ -1,15 +1,7 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { apiRequest, TOKEN_KEY } from '../../lib/api'
 import type { TokenResponse, User } from '../../lib/types'
-
-interface AuthContextValue {
-  user: User | null
-  isLoading: boolean
-  login: (username: string, password: string) => Promise<User>
-  logout: () => void
-}
-
-const AuthContext = createContext<AuthContextValue | null>(null)
+import { AuthContext } from './auth-context'
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
@@ -22,10 +14,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     const token = localStorage.getItem(TOKEN_KEY)
-    if (!token) {
-      setLoading(false)
-      return
-    }
+    if (!token) return
     apiRequest<User>('/api/v1/auth/me')
       .then(setUser)
       .catch(logout)
@@ -48,10 +37,4 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const value = useMemo(() => ({ user, isLoading, login, logout }), [user, isLoading, login, logout])
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
-}
-
-export function useAuth() {
-  const context = useContext(AuthContext)
-  if (!context) throw new Error('useAuth must be used inside AuthProvider')
-  return context
 }

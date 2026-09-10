@@ -1,6 +1,6 @@
 import { Navigate, Outlet, useLocation } from 'react-router-dom'
 import type { UserRole } from '../../lib/types'
-import { useAuth } from './auth-store'
+import { useAuth } from './use-auth'
 
 export function ProtectedRoute({ allowedRoles }: { allowedRoles: UserRole[] }) {
   const { user, isLoading } = useAuth()
