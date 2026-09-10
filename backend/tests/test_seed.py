@@ -40,7 +40,7 @@ def test_seed_creates_documented_demo_accounts(db_session):
 
     usernames = set(db_session.scalars(select(User.username)))
 
-    assert {"admin", "student", "designer", "campus_org"} <= usernames
+    assert {"admin", "reviewer", "student", "designer", "campus_org"} <= usernames
 
 
 def test_seed_creates_stable_labeled_demo_assets(db_session, tmp_path: Path):

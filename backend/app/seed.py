@@ -176,6 +176,7 @@ def ensure_application(db: Session, project: Project, student: User, status: App
 
 def seed_database(db: Session, upload_dir: Path | None = None) -> None:
     ensure_user(db, "admin", "admin@skillhub.example.com", UserRole.admin)
+    ensure_user(db, "reviewer", "reviewer@skillhub.example.com", UserRole.reviewer)
     student = ensure_user(db, "student", "student@skillhub.example.com", UserRole.student, school="SkillHub 大学", college="计算机学院", major="数据科学", grade="2025")
     designer = ensure_user(db, "designer", "designer@skillhub.example.com", UserRole.student, school="SkillHub 大学", college="设计学院", major="视觉传达", grade="2024")
     requester = ensure_user(db, "campus_org", "campus_org@skillhub.example.com", UserRole.requester)
