@@ -84,3 +84,33 @@
 .skill-record-error{padding:0 24px 18px;background:#fff}
 @media(max-width:850px){.skill-create-card>form{grid-template-columns:1fr 1fr}.skill-create-card>form .primary-button{grid-column:1/-1}.skill-manager-card>header{grid-template-columns:55px minmax(0,1fr)}.skill-record-level{grid-column:2;padding:10px 0 0;border:0}.skill-edit-form{grid-template-columns:1fr}}
 @media(max-width:600px){.skill-create-card>header{padding:19px 18px}.skill-create-card>form{grid-template-columns:1fr;padding:19px 18px}.skill-create-card>form .primary-button{grid-column:1}.skill-list-heading{align-items:flex-start;flex-direction:column;gap:8px}.skill-manager-card>header{grid-template-columns:1fr;padding:19px 18px}.skill-record-index{padding:0}.skill-record-level{grid-column:1}.skill-record-actions{display:grid;grid-template-columns:1fr 1fr;padding:12px 18px}.skill-record-actions .skill-delete-button{margin-left:0}.skill-edit-form{padding:20px 18px}.skill-edit-form>div{display:grid;grid-template-columns:1fr 1fr}.skill-record-error{padding:0 18px 18px}}
+.workspace>aside nav{display:grid;gap:8px}
+.workspace>aside nav a{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.workspace-nav-badge{display:grid;place-items:center;min-width:23px;height:23px;padding:0 6px;border-radius:999px;background:var(--brick);color:#fff;font-size:12px}
+.student-stat-row{grid-template-columns:repeat(4,1fr)}
+.invitation-alert{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:16px;align-items:center;margin:-10px 0 34px;padding:18px 20px;border:1px solid var(--amber);background:rgba(196,135,43,.09)}
+.invitation-alert>span{display:grid;place-items:center;width:42px;height:42px;background:var(--ink);color:var(--paper-light)}
+.invitation-alert b{font:700 17px "Noto Serif SC",serif}
+.invitation-alert p{margin:4px 0 0;color:#5d7068;font-size:13px;line-height:1.6}
+.invitation-alert>strong{font-size:13px}
+.invitation-summary{display:flex;align-items:center;gap:15px;margin-bottom:28px;padding:20px 22px;border:1px solid var(--line);background:var(--paper-light)}
+.invitation-summary>span{display:grid;place-items:center;flex:0 0 44px;width:44px;height:44px;background:rgba(196,135,43,.12);color:var(--amber)}
+.invitation-summary b{font:700 18px "Noto Serif SC",serif}
+.invitation-summary p{margin:5px 0 0;color:#5c7068;font-size:13px;line-height:1.65}
+.invitation-list{display:grid;gap:16px}
+.invitation-card{border:1px solid var(--line);background:var(--paper-light)}
+.invitation-card.pending{border-color:var(--amber);box-shadow:7px 7px 0 rgba(196,135,43,.1)}
+.invitation-card>header{display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-bottom:1px solid var(--line)}
+.invitation-card>header time{color:#6d7d77;font-size:12px}
+.invitation-status{display:inline-flex;align-items:center;gap:7px;color:#667871;font-size:12px;font-weight:700}
+.invitation-card.pending .invitation-status{color:var(--amber)}
+.invitation-card-body{padding:24px 26px}
+.invitation-card-body h2{margin:7px 0 12px;font:700 clamp(24px,3vw,32px) "Noto Serif SC",serif}
+.invitation-message{max-width:760px;margin:0;color:#4f655d;font-size:15px;line-height:1.8}
+.invitation-card>footer{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:15px 20px;border-top:1px solid var(--line);background:#fff}
+.invitation-card>footer>span{display:flex;align-items:center;gap:8px;color:#63756e;font-size:13px}
+.invitation-card>footer button{display:inline-flex;align-items:center;gap:8px;border:0;background:transparent;color:var(--ink);font-size:13px;font-weight:700;cursor:pointer}
+.invitation-card>footer button:disabled{opacity:.55;cursor:wait}
+.invitation-empty{background:rgba(250,247,237,.55)}
+@media(max-width:900px){.student-stat-row{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:600px){.invitation-alert{grid-template-columns:auto 1fr}.invitation-alert>strong{grid-column:1/-1}.invitation-card-body{padding:21px 18px}.invitation-card>footer{align-items:flex-start;flex-direction:column}.invitation-card>footer button{width:100%;justify-content:space-between}.invitation-summary{align-items:flex-start;padding:18px}.student-stat-row{grid-template-columns:1fr 1fr}}

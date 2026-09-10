@@ -25,6 +25,7 @@ import { ReviewPage } from '../features/requester/ReviewPage'
 import { ReviewQueuePage } from '../features/reviewer/ReviewQueuePage'
 import { ReviewerLayout } from '../features/reviewer/ReviewerLayout'
 import { ApplicationsPage } from '../features/student/ApplicationsPage'
+import { InvitationsPage } from '../features/student/InvitationsPage'
 import { OverviewPage } from '../features/student/OverviewPage'
 import { PortfoliosPage } from '../features/student/PortfoliosPage'
 import { ProfileEditPage } from '../features/student/ProfileEditPage'
@@ -36,7 +37,7 @@ export const router = createBrowserRouter([{ element:<AppShell />, children:[
   { path:'/projects', element:<ProjectsPage /> }, { path:'/projects/:id', element:<ProjectDetailPage /> },
   { path:'/talent', element:<TalentPage /> }, { path:'/talent/:id', element:<ProfilePage /> },
   { path:'/credentials/:number', element:<CredentialPage /> }, { path:'/403', element:<PlaceholderPage title="无权访问这份档案" /> },
-  { element:<ProtectedRoute allowedRoles={['student']} />, children:[{ path:'/student', element:<StudentLayout />, children:[{ index:true, element:<OverviewPage /> },{ path:'profile', element:<ProfileEditPage /> },{ path:'skills', element:<SkillsPage /> },{ path:'portfolios', element:<PortfoliosPage /> },{ path:'applications', element:<ApplicationsPage /> }] }] },
+  { element:<ProtectedRoute allowedRoles={['student']} />, children:[{ path:'/student', element:<StudentLayout />, children:[{ index:true, element:<OverviewPage /> },{ path:'profile', element:<ProfileEditPage /> },{ path:'skills', element:<SkillsPage /> },{ path:'portfolios', element:<PortfoliosPage /> },{ path:'invitations', element:<InvitationsPage /> },{ path:'applications', element:<ApplicationsPage /> }] }] },
   { element:<ProtectedRoute allowedRoles={['requester']} />, children:[{ path:'/requester', element:<RequesterLayout />, children:[{ index:true, element:<RequesterOverview /> },{ path:'new', element:<ProjectFormPage /> },{ path:'projects', element:<MyProjectsPage /> },{ path:'projects/:id/applicants', element:<ApplicantsPage /> },{ path:'projects/:id/review', element:<ReviewPage /> }] }] },
   { element:<ProtectedRoute allowedRoles={['reviewer']} />, children:[{ path:'/reviewer', element:<ReviewerLayout />, children:[{ index:true, element:<ReviewQueuePage /> }] }] },
   { element:<ProtectedRoute allowedRoles={['admin']} />, children:[{ path:'/admin', element:<AdminLayout />, children:[{ index:true, element:<AdminOverview /> },{ path:'users', element:<UsersPage /> },{ path:'projects', element:<AdminProjects /> },{ path:'assessment-runs', element:<AssessmentRunsPage /> },{ path:'verifications', element:<VerificationsPage /> }] }] },

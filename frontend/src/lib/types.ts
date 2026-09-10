@@ -36,6 +36,8 @@ export interface Verification { id:number; assessment_run_id:number; student_id:
 export interface ApplicantSummary { user_id:number; display_name:string; skills:Skill[] }
 export interface AuthorizedPortfolio extends Portfolio { ai_assessment:{criteria?:RubricCriterion[];total_score?:number}|null; verification_status:VerificationStatus|null; result_label:string|null }
 export interface Application { id:number; project_id:number; student_id:number; message:string|null; status:'pending'|'accepted'|'rejected'|'finished'; created_at:string; student?:ApplicantSummary; authorized_portfolios?:AuthorizedPortfolio[] }
+export type InvitationStatus = 'pending'|'viewed'|'applied'
+export interface ProjectInvitation { id:number; project_id:number; student_id:number; inviter_id:number; message:string|null; status:InvitationStatus; created_at:string; viewed_at:string|null; project:Project }
 export interface ReviewerAssignment { assignment_id:number; verification:Verification; evidence:Portfolio; defense:Array<{question_id:number;question:string;answer:string|null}>; ai_result:{criteria:RubricCriterion[];total_score:number;result_label:string} }
 export interface ProjectValidation { id:number; project_id:number; student_id:number; requester_id:number; project_title:string; deliverables:string|null; acceptance_criteria:string|null; required_skills:string[]; outcome:string; created_at:string }
 export interface PublicCredential { name:string; credential_number:string; status:'active'|'revoked'; rubric_version:string; issuer:string; issued_at:string; revoked_at:string|null; evidence_summary:{title:string;evidence_type:string}; verified_result:{criteria?:RubricCriterion[];total_score?:number;human_review_reason?:string} }

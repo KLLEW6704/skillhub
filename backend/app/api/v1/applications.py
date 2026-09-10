@@ -5,7 +5,12 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_db, require_roles
-from app.models.application import Application, ApplicationPortfolioGrant, ApplicationStatus
+from app.models.application import (
+    Application,
+    ApplicationPortfolioGrant,
+    ApplicationStatus,
+    ProjectInvitation,
+)
 from app.models.portfolio import Portfolio
 from app.models.assessment import AssessmentRun, AssessmentStage, AssessmentStatus
 from app.models.profile import StudentProfile
@@ -16,16 +21,64 @@ from app.models.user import User, UserRole
 from app.schemas.application import (
     ApplicationCreate,
     ApplicationResponse,
+    InvitationCreate,
+    InvitationResponse,
     RequesterApplicationResponse,
 )
 from app.schemas.project import ProjectResponse
-from app.services.applications import apply_to_project, handle_application, transition_project
+from app.services.applications import (
+    apply_to_project,
+    handle_application,
+    invite_student_to_project,
+    mark_invitation_viewed,
+    transition_project,
+)
 from app.services.portfolios import portfolio_to_response
 
 
 router = APIRouter(tags=["applications"])
 student_only = require_roles(UserRole.student)
 requester_only = require_roles(UserRole.requester)
+
+
+@router.post(
+    "/projects/{project_id}/invitations",
+    response_model=InvitationResponse,
+    status_code=201,
+)
+def invite_student(
+    project_id: int,
+    payload: InvitationCreate,
+    current: User = Depends(requester_only),
+    db: Session = Depends(get_db),
+):
+    return invite_student_to_project(
+        db, current, project_id, payload.student_id, payload.message
+    )
+
+
+@router.get("/invitations/mine", response_model=list[InvitationResponse])
+def my_invitations(
+    current: User = Depends(student_only), db: Session = Depends(get_db)
+):
+    return list(
+        db.scalars(
+            select(ProjectInvitation)
+            .where(ProjectInvitation.student_id == current.id)
+            .order_by(ProjectInvitation.created_at.desc())
+        ).unique()
+    )
+
+
+@router.post(
+    "/invitations/{invitation_id}/view", response_model=InvitationResponse
+)
+def view_invitation(
+    invitation_id: int,
+    current: User = Depends(student_only),
+    db: Session = Depends(get_db),
+):
+    return mark_invitation_viewed(db, current, invitation_id)
 
 
 @router.post("/projects/{project_id}/applications", response_model=ApplicationResponse, status_code=201)

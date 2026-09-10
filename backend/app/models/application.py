@@ -2,7 +2,7 @@ from datetime import datetime, timezone
 from enum import Enum
 
 from sqlalchemy import DateTime, Enum as SqlEnum, ForeignKey, Text, UniqueConstraint
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
 
@@ -12,6 +12,12 @@ class ApplicationStatus(str, Enum):
     accepted = "accepted"
     rejected = "rejected"
     finished = "finished"
+
+
+class InvitationStatus(str, Enum):
+    pending = "pending"
+    viewed = "viewed"
+    applied = "applied"
 
 
 class Application(Base):
@@ -40,3 +46,24 @@ class ApplicationPortfolioGrant(Base):
     granted_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
     )
+
+
+class ProjectInvitation(Base):
+    __tablename__ = "project_invitations"
+    __table_args__ = (
+        UniqueConstraint("project_id", "student_id", name="uq_project_invitation_student"),
+    )
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    project_id: Mapped[int] = mapped_column(ForeignKey("projects.id"), index=True)
+    student_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
+    inviter_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
+    message: Mapped[str | None] = mapped_column(Text)
+    status: Mapped[InvitationStatus] = mapped_column(
+        SqlEnum(InvitationStatus), default=InvitationStatus.pending, index=True
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
+    )
+    viewed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    project: Mapped["Project"] = relationship(lazy="joined")

@@ -1,23 +1,33 @@
-import { useMutation, useQuery } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { ArrowLeft, Calendar, Send } from 'lucide-react'
 import type { FormEvent } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { apiRequest } from '../../lib/api'
-import type { Portfolio, Project } from '../../lib/types'
+import type { Application, Portfolio, Project } from '../../lib/types'
 import { useAuth } from '../auth/use-auth'
 
 export function ProjectDetailPage() {
   const { id } = useParams()
   const { user } = useAuth()
+  const queryClient = useQueryClient()
   const project = useQuery({ queryKey: ['project', id], queryFn: () => apiRequest<Project>(`/api/v1/projects/${id}`) })
   const portfolios = useQuery({ queryKey: ['portfolios'], queryFn: () => apiRequest<Portfolio[]>('/api/v1/portfolios'), enabled: user?.role === 'student' })
-  const apply = useMutation({ mutationFn: (payload: unknown) => apiRequest(`/api/v1/projects/${id}/applications`, { method: 'POST', body: JSON.stringify(payload) }) })
+  const applications = useQuery({ queryKey: ['my-apps'], queryFn: () => apiRequest<Application[]>('/api/v1/applications/mine'), enabled: user?.role === 'student' })
+  const apply = useMutation({
+    mutationFn: (payload: unknown) => apiRequest(`/api/v1/projects/${id}/applications`, { method: 'POST', body: JSON.stringify(payload) }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['my-invitations'] })
+      queryClient.invalidateQueries({ queryKey: ['my-apps'] })
+    },
+  })
 
   if (project.isLoading) return <div className="page-state">读取项目档案…</div>
   if (!project.data) return <div className="page-state">项目不存在</div>
 
   const data = project.data
   const expired = new Date(data.deadline) < new Date()
+  const acceptingApplications = data.lifecycle_status === 'recruiting' && !expired
+  const alreadyApplied = applications.data?.some((application) => application.project_id === data.id) ?? false
 
   function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -50,7 +60,7 @@ export function ProjectDetailPage() {
           </dl>
         </header>
 
-        {user?.role === 'student' && !expired ? <form className="application-form project-application-form" onSubmit={submit}>
+        {user?.role === 'student' && acceptingApplications && !alreadyApplied ? <form className="application-form project-application-form" onSubmit={submit}>
           <label className="project-message-field"><span>申请留言</span><textarea name="message" placeholder="说明相关经验、申请原因与可投入时间" /></label>
           <fieldset className="project-evidence-field">
             <legend>主动授权给项目方的作品</legend>
@@ -61,7 +71,7 @@ export function ProjectDetailPage() {
             <p>提交后，项目方可以查看你的申请留言和已授权作品。</p>
             <button className="primary-button" disabled={apply.isPending || apply.isSuccess}><Send size={16} />{apply.isSuccess ? '申请已提交' : apply.isPending ? '提交中…' : '申请加入项目'}</button>
           </div>
-        </form> : <div className="closed-note project-recruitment-closed">{expired ? '申请已截止' : user ? '当前身份不可申请' : '登录学生账号后可提交申请'}</div>}
+        </form> : <div className="closed-note project-recruitment-closed">{alreadyApplied ? '你已申请该项目，可在“我的申请”中查看进度' : expired ? '申请已截止' : data.lifecycle_status !== 'recruiting' ? '项目已结束招募' : user ? '当前身份不可申请' : '登录学生账号后可提交申请'}</div>}
         {apply.isError && <p className="form-error project-application-error">{apply.error.message}</p>}
       </section>
     </div>

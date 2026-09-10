@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, datetime, timezone
 
 from fastapi import HTTPException
 from sqlalchemy import select
@@ -8,10 +8,75 @@ from app.models.application import (
     Application,
     ApplicationPortfolioGrant,
     ApplicationStatus,
+    InvitationStatus,
+    ProjectInvitation,
 )
 from app.models.portfolio import Portfolio
 from app.models.project import AuditStatus, LifecycleStatus, Project
-from app.models.user import User
+from app.models.user import User, UserRole
+
+
+def invite_student_to_project(
+    db: Session,
+    requester: User,
+    project_id: int,
+    student_id: int,
+    message: str | None,
+) -> ProjectInvitation:
+    project = db.get(Project, project_id)
+    if project is None or project.creator_id != requester.id:
+        raise HTTPException(status_code=404, detail="项目不存在")
+    if project.audit_status != AuditStatus.approved:
+        raise HTTPException(status_code=409, detail="项目通过审核后才能发出邀约")
+    if project.lifecycle_status != LifecycleStatus.recruiting:
+        raise HTTPException(status_code=409, detail="只有招募中的项目可以发出邀约")
+    if project.deadline < date.today():
+        raise HTTPException(status_code=409, detail="项目申请已截止")
+
+    student = db.get(User, student_id)
+    if student is None or student.role != UserRole.student or not student.is_active:
+        raise HTTPException(status_code=404, detail="学生档案不存在")
+    existing_application = db.scalar(
+        select(Application).where(
+            Application.project_id == project_id,
+            Application.student_id == student_id,
+        )
+    )
+    if existing_application:
+        raise HTTPException(status_code=409, detail="该学生已申请过此项目")
+    existing_invitation = db.scalar(
+        select(ProjectInvitation).where(
+            ProjectInvitation.project_id == project_id,
+            ProjectInvitation.student_id == student_id,
+        )
+    )
+    if existing_invitation:
+        raise HTTPException(status_code=409, detail="已向该学生发送过此项目邀约")
+
+    invitation = ProjectInvitation(
+        project_id=project_id,
+        student_id=student_id,
+        inviter_id=requester.id,
+        message=message.strip() if message and message.strip() else None,
+    )
+    db.add(invitation)
+    db.commit()
+    db.refresh(invitation)
+    return invitation
+
+
+def mark_invitation_viewed(
+    db: Session, student: User, invitation_id: int
+) -> ProjectInvitation:
+    invitation = db.get(ProjectInvitation, invitation_id)
+    if invitation is None or invitation.student_id != student.id:
+        raise HTTPException(status_code=404, detail="项目邀约不存在")
+    if invitation.status == InvitationStatus.pending:
+        invitation.status = InvitationStatus.viewed
+        invitation.viewed_at = datetime.now(timezone.utc)
+        db.commit()
+        db.refresh(invitation)
+    return invitation
 
 
 def apply_to_project(
@@ -51,6 +116,15 @@ def apply_to_project(
                 application_id=application.id, portfolio_id=portfolio_id
             )
         )
+    invitation = db.scalar(
+        select(ProjectInvitation).where(
+            ProjectInvitation.project_id == project_id,
+            ProjectInvitation.student_id == student.id,
+        )
+    )
+    if invitation:
+        invitation.status = InvitationStatus.applied
+        invitation.viewed_at = invitation.viewed_at or datetime.now(timezone.utc)
     db.commit(); db.refresh(application)
     return application
 
