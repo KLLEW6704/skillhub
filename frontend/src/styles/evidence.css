@@ -201,6 +201,10 @@
 @media(max-width:600px){.project-detail-layout{gap:48px}.project-recruitment{box-shadow:6px 6px 0 rgba(23,60,50,.08)}.project-recruitment-heading{padding:24px 20px}.project-recruitment-meta{grid-template-columns:1fr}.project-recruitment-meta>div,.project-recruitment-meta>div:first-child{padding:13px 0;border-top:1px solid var(--line);border-left:0}.project-application-form{padding:20px}.project-application-form>.project-message-field,.project-application-form>.project-evidence-field{padding:18px}.project-apply-footer{align-items:stretch;flex-direction:column}.project-apply-footer .primary-button{width:100%}.project-recruitment-closed{margin:20px}.project-application-error{margin:0 20px 20px}}
 .profile-page>.profile-hero-header{display:flex;align-items:flex-start;justify-content:space-between;gap:44px;max-width:none}
 .profile-hero-copy{max-width:900px}
+.profile-public-identity{display:flex;align-items:flex-end;gap:25px}
+.profile-public-avatar{flex:0 0 104px;width:104px;height:104px;margin-bottom:13px;border:1px solid var(--ink)}
+.profile-public-identity h1{margin-top:8px}
+.profile-public-identity p:last-child{color:#62746d}
 .profile-invite-button{display:flex;align-items:center;gap:12px;flex:0 0 auto;margin-top:30px;padding:15px 18px;border:1px solid var(--ink);background:var(--ink);color:var(--paper-light);text-align:left;cursor:pointer}
 .profile-invite-button>span{display:grid;gap:3px}
 .profile-invite-button b{font-size:14px}
@@ -224,5 +228,5 @@
 .invite-dialog-empty h3,.invite-success h3{margin:13px 0 7px;font:700 25px "Noto Serif SC",serif}
 .invite-dialog-empty p,.invite-success p{max-width:460px;margin:0 auto 22px;color:#5d7068;font-size:14px;line-height:1.75}
 .invite-success>svg{color:var(--amber)}
-@media(max-width:760px){.profile-page>.profile-hero-header{flex-direction:column;gap:5px}.profile-invite-button{width:100%;margin-top:12px;justify-content:center}.invite-dialog{box-shadow:7px 7px 0 rgba(23,60,50,.2)}}
+@media(max-width:760px){.profile-page>.profile-hero-header{flex-direction:column;gap:5px}.profile-public-identity{align-items:flex-start;flex-direction:column;gap:10px}.profile-public-avatar{width:82px;height:82px;margin-bottom:0}.profile-invite-button{width:100%;margin-top:12px;justify-content:center}.invite-dialog{box-shadow:7px 7px 0 rgba(23,60,50,.2)}}
 @media(max-width:600px){.invite-dialog>header{padding:18px}.invite-dialog>form{padding:20px}.invite-dialog-actions{display:grid;grid-template-columns:1fr 1fr}.invite-dialog-actions button{justify-content:center}}

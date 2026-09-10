@@ -86,6 +86,48 @@
 @media(max-width:600px){.skill-create-card>header{padding:19px 18px}.skill-create-card>form{grid-template-columns:1fr;padding:19px 18px}.skill-create-card>form .primary-button{grid-column:1}.skill-list-heading{align-items:flex-start;flex-direction:column;gap:8px}.skill-manager-card>header{grid-template-columns:1fr;padding:19px 18px}.skill-record-index{padding:0}.skill-record-level{grid-column:1}.skill-record-actions{display:grid;grid-template-columns:1fr 1fr;padding:12px 18px}.skill-record-actions .skill-delete-button{margin-left:0}.skill-edit-form{padding:20px 18px}.skill-edit-form>div{display:grid;grid-template-columns:1fr 1fr}.skill-record-error{padding:0 18px 18px}}
 .workspace>aside nav{display:grid;gap:8px}
 .workspace>aside nav a{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.profile-editor-heading{display:grid;grid-template-columns:minmax(0,1fr) 210px;gap:50px;align-items:end;margin-bottom:30px;padding-bottom:28px;border-bottom:1px solid var(--ink)}
+.profile-editor-heading h1{margin-bottom:16px}
+.profile-editor-heading>div:first-child>p:last-child{max-width:720px;margin:0;color:#566b63;font-size:15px;line-height:1.8}
+.profile-completeness{display:grid;gap:8px;padding:17px 18px;border:1px solid var(--line);background:var(--paper-light)}
+.profile-completeness>span{color:#667871;font-size:13px}
+.profile-completeness>strong{color:var(--amber);font:700 33px "Noto Serif SC",serif}
+.profile-completeness>div{height:4px;background:rgba(23,60,50,.14)}
+.profile-completeness i{display:block;height:100%;background:var(--amber);transition:width .2s ease}
+.profile-editor-layout{display:grid;grid-template-columns:minmax(0,1fr) minmax(280px,360px);gap:24px;align-items:start}
+.profile-editor-form{border:1px solid var(--ink);background:var(--paper-light)}
+.profile-form-section{padding:25px 28px 29px;border-bottom:1px solid var(--line)}
+.profile-form-section>header{display:flex;align-items:flex-start;gap:13px;margin-bottom:22px}
+.profile-form-section>header>span{display:grid;place-items:center;flex:0 0 42px;width:42px;height:42px;background:rgba(196,135,43,.11);color:var(--amber)}
+.profile-form-section>header>div{display:grid;gap:4px}
+.profile-form-section>header b{font:700 19px "Noto Serif SC",serif}
+.profile-form-section>header small{color:#667871;font-size:13px;line-height:1.55}
+.profile-form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}
+.profile-editor-form label{display:grid;gap:8px;color:var(--ink);font-size:14px;font-weight:600}
+.profile-editor-form label>small{color:#70817a;font-size:12px;font-weight:400}
+.profile-editor-form input,.profile-editor-form textarea{width:100%;min-height:45px;padding:11px 12px;border:1px solid rgba(23,60,50,.24);background:#fff;color:var(--ink);font:inherit;outline:none}
+.profile-editor-form textarea{min-height:155px;resize:vertical;line-height:1.7}
+.profile-editor-form input:focus,.profile-editor-form textarea:focus{border-color:var(--amber);box-shadow:0 0 0 3px rgba(196,135,43,.12)}
+.profile-bio-field{position:relative}
+.profile-bio-field>small{justify-self:end}
+.profile-form-actions{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:20px 28px;background:#fff}
+.profile-form-actions p{display:flex;align-items:center;gap:8px;margin:0;color:#61736c;font-size:13px}
+.profile-save-success{margin:0;padding:14px 28px;border-top:1px solid #b8d0bd;background:#edf6ee;color:#356044;font-size:13px}
+.profile-editor-form>.form-error{padding:0 28px 18px}
+.profile-live-preview{position:sticky;top:105px;padding:24px;border:1px solid var(--ink);border-top:5px solid var(--amber);background:var(--paper-light);box-shadow:9px 9px 0 rgba(23,60,50,.08)}
+.profile-live-preview>header{display:flex;justify-content:space-between;gap:12px;margin:-24px -24px 25px;padding:15px 18px;border-bottom:1px solid var(--line);background:#fff}
+.profile-live-preview>header span{color:#71817b;font-size:10px;letter-spacing:.08em}
+.profile-live-preview>header b{font-size:13px}
+.profile-avatar-preview,.profile-public-avatar{position:relative;display:grid;place-items:center;overflow:hidden;background:var(--ink);color:var(--paper-light)}
+.profile-avatar-preview{width:82px;height:82px;margin-bottom:24px}
+.profile-avatar-preview strong,.profile-public-avatar strong{font:700 34px "Noto Serif SC",serif}
+.profile-avatar-preview img,.profile-public-avatar img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.profile-live-preview h2{margin:7px 0 10px;font:700 29px "Noto Serif SC",serif}
+.profile-preview-affiliation{margin:0;color:#5f716b;font-size:13px;line-height:1.65}
+.profile-live-preview blockquote{margin:24px 0;padding-left:16px;border-left:2px solid var(--amber);color:#496159;font:15px/1.8 "Noto Serif SC",serif}
+.profile-live-preview>small{display:block;padding-top:17px;border-top:1px solid var(--line);color:#71817b;font-size:12px;line-height:1.65}
+@media(max-width:1000px){.profile-editor-layout{grid-template-columns:1fr}.profile-live-preview{position:static;display:grid;grid-template-columns:auto 1fr;column-gap:20px}.profile-live-preview>header,.profile-live-preview>small{grid-column:1/-1}.profile-avatar-preview{grid-row:2/6}.profile-live-preview blockquote{margin:12px 0 20px}}
+@media(max-width:700px){.profile-editor-heading{grid-template-columns:1fr;gap:20px}.profile-completeness{max-width:none}.profile-form-grid{grid-template-columns:1fr}.profile-form-section{padding:22px 18px}.profile-form-actions{align-items:stretch;flex-direction:column;padding:18px}.profile-form-actions .primary-button{width:100%}.profile-editor-form>.form-error,.profile-save-success{padding-left:18px;padding-right:18px}.profile-live-preview{display:block}.profile-avatar-preview{margin-bottom:20px}}
 .workspace-nav-badge{display:grid;place-items:center;min-width:23px;height:23px;padding:0 6px;border-radius:999px;background:var(--brick);color:#fff;font-size:12px}
 .student-stat-row{grid-template-columns:repeat(4,1fr)}
 .invitation-alert{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:16px;align-items:center;margin:-10px 0 34px;padding:18px 20px;border:1px solid var(--amber);background:rgba(196,135,43,.09)}

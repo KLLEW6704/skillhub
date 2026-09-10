@@ -10,6 +10,8 @@ export interface Project { id:number; creator_id:number; title:string; descripti
 export interface ProjectPage { items:Project[]; total:number; page:number; page_size:number }
 export interface Skill { id:number; user_id:number; name:string; description:string|null; growth_score:number; level:number; created_at:string }
 
+export interface EditableStudentProfile { user_id:number; display_name:string; avatar_url:string|null; bio:string|null; school:string|null; college:string|null; major:string|null; grade:string|null }
+
 export interface Portfolio {
   id:number; user_id:number; skill_id:number; title:string; description:string|null; file_url:string; file_type:string
   evidence_type:string; creation_context:string|null; personal_role:string|null; process_description:string|null

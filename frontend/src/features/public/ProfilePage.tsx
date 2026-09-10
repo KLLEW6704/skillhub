@@ -59,9 +59,7 @@ export function ProfilePage() {
   return <section className="profile-page">
     <header className="profile-hero-header">
       <div className="profile-hero-copy">
-        <p className="eyebrow">PUBLIC EVIDENCE FILE · {student.username}</p>
-        <h1>{student.display_name}</h1>
-        <p>{[student.school, student.college, student.major, student.grade].filter(Boolean).join(' · ')}</p>
+        <div className="profile-public-identity"><div className="profile-public-avatar"><strong>{student.display_name.trim().slice(0, 1) || '档'}</strong>{student.avatar_url && <img src={student.avatar_url} alt={`${student.display_name}的头像`} onError={(event) => { event.currentTarget.hidden = true }} />}</div><div><p className="eyebrow">PUBLIC EVIDENCE FILE · {student.username}</p><h1>{student.display_name}</h1><p>{[student.school, student.college, student.major, student.grade].filter(Boolean).join(' · ')}</p></div></div>
         <blockquote>{student.bio || '这位同学正在用作品和真实项目完善自己的成长档案。'}</blockquote>
       </div>
       {user?.role === 'requester' && <button type="button" className="profile-invite-button" onClick={openInviteDialog}><Send size={18} /><span><b>邀约参与项目</b><small>由学生自主决定是否申请</small></span></button>}
