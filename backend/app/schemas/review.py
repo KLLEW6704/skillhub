@@ -24,3 +24,16 @@ class ReviewResponse(BaseModel):
     time_management_score: int
     comment: str | None
     created_at: datetime
+
+
+class ProjectValidationResponse(BaseModel):
+    id: int
+    project_id: int
+    student_id: int
+    requester_id: int
+    project_title: str
+    deliverables: str | None
+    acceptance_criteria: str | None
+    required_skills: list[str]
+    outcome: str
+    created_at: datetime

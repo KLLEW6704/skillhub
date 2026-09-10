@@ -36,10 +36,29 @@ class Project(Base):
     lifecycle_status: Mapped[LifecycleStatus] = mapped_column(SqlEnum(LifecycleStatus), default=LifecycleStatus.recruiting)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
     skill_requirements: Mapped[list["ProjectRequiredSkill"]] = relationship(cascade="all, delete-orphan", lazy="selectin")
+    delivery_requirements: Mapped["ProjectDeliveryRequirements | None"] = relationship(
+        cascade="all, delete-orphan", lazy="selectin", uselist=False
+    )
 
     @property
     def required_skills(self) -> list[str]:
         return [item.skill_name for item in self.skill_requirements]
+
+    @property
+    def deliverables(self) -> str | None:
+        return (
+            self.delivery_requirements.deliverables
+            if self.delivery_requirements
+            else None
+        )
+
+    @property
+    def acceptance_criteria(self) -> str | None:
+        return (
+            self.delivery_requirements.acceptance_criteria
+            if self.delivery_requirements
+            else None
+        )
 
 
 class ProjectRequiredSkill(Base):
@@ -47,3 +66,13 @@ class ProjectRequiredSkill(Base):
 
     project_id: Mapped[int] = mapped_column(ForeignKey("projects.id"), primary_key=True)
     skill_name: Mapped[str] = mapped_column(String(80), primary_key=True)
+
+
+class ProjectDeliveryRequirements(Base):
+    __tablename__ = "project_delivery_requirements"
+
+    project_id: Mapped[int] = mapped_column(
+        ForeignKey("projects.id", ondelete="CASCADE"), primary_key=True
+    )
+    deliverables: Mapped[str | None] = mapped_column(Text)
+    acceptance_criteria: Mapped[str | None] = mapped_column(Text)

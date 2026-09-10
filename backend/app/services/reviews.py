@@ -1,3 +1,5 @@
+import json
+
 from fastapi import HTTPException
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -5,6 +7,7 @@ from sqlalchemy.orm import Session
 from app.models.application import Application, ApplicationStatus
 from app.models.project import LifecycleStatus, Project
 from app.models.review import Review
+from app.models.project_validation import ProjectValidationRecord
 from app.models.user import User
 from app.schemas.review import ReviewCreate
 from app.services.growth import recalculate_student_skills
@@ -25,6 +28,20 @@ def create_review(db: Session, reviewer: User, project_id: int, student_id: int,
     db.add(review)
     application.status = ApplicationStatus.finished
     db.flush()
+    db.add(
+        ProjectValidationRecord(
+            project_id=project.id,
+            student_id=student_id,
+            requester_id=reviewer.id,
+            review_id=review.id,
+            project_title=project.title,
+            deliverables_snapshot=project.deliverables,
+            acceptance_criteria_snapshot=project.acceptance_criteria,
+            required_skills_snapshot=json.dumps(
+                project.required_skills, ensure_ascii=False
+            ),
+        )
+    )
     remaining = db.scalar(select(Application).where(Application.project_id == project_id, Application.status == ApplicationStatus.accepted))
     if remaining is None:
         project.lifecycle_status = LifecycleStatus.completed

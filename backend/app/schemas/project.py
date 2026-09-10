@@ -13,6 +13,8 @@ class ProjectCreate(BaseModel):
     budget: Decimal | None = Field(default=None, ge=0)
     deadline: date
     required_skills: list[str] = Field(min_length=1, max_length=12)
+    deliverables: str | None = Field(default=None, max_length=4000)
+    acceptance_criteria: str | None = Field(default=None, max_length=4000)
 
     @field_validator("required_skills")
     @classmethod
@@ -34,6 +36,8 @@ class ProjectUpdate(BaseModel):
     budget: Decimal | None = Field(default=None, ge=0)
     deadline: date | None = None
     required_skills: list[str] | None = None
+    deliverables: str | None = Field(default=None, max_length=4000)
+    acceptance_criteria: str | None = Field(default=None, max_length=4000)
 
 
 class ProjectResponse(BaseModel):
@@ -49,6 +53,8 @@ class ProjectResponse(BaseModel):
     audit_status: AuditStatus
     lifecycle_status: LifecycleStatus
     required_skills: list[str]
+    deliverables: str | None
+    acceptance_criteria: str | None
     created_at: datetime
 
 

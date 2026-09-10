@@ -9,6 +9,8 @@ def project_payload(**overrides):
         "budget": 1200,
         "deadline": (date.today() + timedelta(days=30)).isoformat(),
         "required_skills": ["摄影", "视频剪辑"],
+        "deliverables": "精选照片 30 张与 90 秒回顾短片",
+        "acceptance_criteria": "画面清晰、授权完整，并在截止日前交付",
     }
     payload.update(overrides)
     return payload
@@ -29,6 +31,8 @@ def test_requester_creates_pending_project(client, requester_headers):
     assert response.json()["audit_status"] == "pending"
     assert response.json()["lifecycle_status"] == "recruiting"
     assert response.json()["required_skills"] == ["摄影", "视频剪辑"]
+    assert response.json()["deliverables"] == "精选照片 30 张与 90 秒回顾短片"
+    assert "截止日前" in response.json()["acceptance_criteria"]
 
 
 def test_student_cannot_create_project(client, student_headers):

@@ -17,7 +17,13 @@ from app.models.portfolio import (
     PortfolioEvidenceSkill,
 )
 from app.models.profile import RequesterProfile, StudentProfile
-from app.models.project import AuditStatus, LifecycleStatus, Project, ProjectRequiredSkill
+from app.models.project import (
+    AuditStatus,
+    LifecycleStatus,
+    Project,
+    ProjectDeliveryRequirements,
+    ProjectRequiredSkill,
+)
 from app.models.review import Review
 from app.models.skill import Skill
 from app.models.user import User, UserRole
@@ -134,6 +140,11 @@ def ensure_demo_portfolio(
 def ensure_project(db: Session, creator: User, title: str, audit: AuditStatus, lifecycle: LifecycleStatus, skills: list[str], days: int) -> Project:
     project = db.scalar(select(Project).where(Project.title == title))
     if project:
+        if project.delivery_requirements is None:
+            project.delivery_requirements = ProjectDeliveryRequirements(
+                deliverables=f"{title}成果包与交付说明",
+                acceptance_criteria="按约定范围完整交付，并由项目方依据成果质量与时间要求验收",
+            )
         return project
     project = Project(
         creator_id=creator.id,
@@ -145,6 +156,10 @@ def ensure_project(db: Session, creator: User, title: str, audit: AuditStatus, l
         audit_status=audit,
         lifecycle_status=lifecycle,
         skill_requirements=[ProjectRequiredSkill(skill_name=name) for name in skills],
+        delivery_requirements=ProjectDeliveryRequirements(
+            deliverables=f"{title}成果包与交付说明",
+            acceptance_criteria="按约定范围完整交付，并由项目方依据成果质量与时间要求验收",
+        ),
     )
     db.add(project); db.flush()
     return project

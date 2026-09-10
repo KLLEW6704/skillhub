@@ -5,6 +5,7 @@ import pytest
 from app.models.application import Application, ApplicationStatus
 from app.models.portfolio import Portfolio
 from app.models.project import AuditStatus, LifecycleStatus, Project, ProjectRequiredSkill
+from app.models.project_validation import ProjectValidationRecord
 from app.services.growth import level_for_score
 
 
@@ -84,6 +85,15 @@ def test_review_completes_application_project_and_recalculates_growth(
     assert project.lifecycle_status == LifecycleStatus.completed
     assert student_skill.growth_score == 42
     assert student_skill.level == 2
+    validation = db_session.query(ProjectValidationRecord).one()
+    assert validation.project_id == project.id
+    assert validation.student_id == student_user.id
+    public = client.get(
+        f"/api/v1/profiles/students/{student_user.id}/project-validations"
+    )
+    assert public.status_code == 200
+    assert public.json()[0]["project_title"] == "校园摄影实践"
+    assert public.json()[0]["required_skills"] == ["摄影"]
 
 
 def test_review_scores_must_be_between_one_and_five(
