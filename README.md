@@ -1,73 +1,101 @@
-# SkillHub 技能实践与项目协作平台
+# SkillHub：面向高校学生的技能证据与真实项目验证平台
 
-SkillHub 面向高校学生与校园组织，将技能、作品、真实项目和四维评价连接成可展示、可验证、持续成长的档案。MVP 包含三类角色认证、作品上传、项目审核与申请、录用、评价、技能积分和管理后台；不包含支付、聊天与 AI 功能。
+SkillHub 不把一次自报或一次 AI 打分包装成“能力认证”。它把一条更谨慎的验证链路做成可运行原型：
 
-## 环境要求
+**作品证据 → AI 动态答辩 → 透明 AI 辅助初评 → 人工复核 → 真实项目交付验证**
 
-- Python 3.11+
-- Node.js 20+
-- Windows PowerShell
+当前版本用于课程实践与产品假设验证，不是学校官方认证系统。系统生成的徽章明确标记为“SkillHub 试行技能徽章”；种子数据中的作品也明确标记为演示样本，不代表真实学生成果。
 
-## 后端安装与启动
+## 当前可演示能力
+
+- 学生建立技能档案，上传作品并记录创作背景、个人职责、制作过程和迭代说明。
+- 每份作品可设为仅自己可见、仅授权项目可见或公开展示；申请项目时单独选择授权作品。
+- 经学生明确同意后，对 PNG、JPEG、WebP 静态视觉作品发起 AI 观察；不支持的格式仍可保存，但不会伪装成已完成 AI 评估。
+- AI 先返回可观察事实与证据缺口，再生成三道针对性问题；学生回答后才形成带证据引用的量表初评。
+- AI 运行状态、失败原因和重试记录可追踪；初评不会自动改变权限、项目状态或成长活跃度。
+- 管理员可查看 AI 运行与待复核记录、分配评审；评审可检查原作品、答辩和量表，调分与结论必须填写理由。
+- 人工复核通过后可生成可公开核验、可撤销的试行徽章。
+- 项目方发布项目时填写交付物与验收标准，只能查看学生为该项目主动授权的作品；项目完成后的四维评价形成独立的真实项目验证记录。
+- 公开学生页将“成长活跃度、公开作品证据、AI 边界、人工核验、真实项目记录、项目评价”分区展示，避免混成一个看似权威的总分。
+
+## 技术组成
+
+- 后端：FastAPI、SQLAlchemy、SQLite、Pydantic、JWT
+- 前端：React、TypeScript、Vite、TanStack Query、React Router
+- 模型接口：DashScope 的 OpenAI 兼容接口
+
+## 本地启动
+
+环境建议：Python 3.11+、Node.js 20+、Windows PowerShell。
+
+后端：
 
 ```powershell
 cd backend
 python -m venv .venv
 ./.venv/Scripts/python -m pip install -e ".[dev]"
-Copy-Item .env.example .env
+if (-not (Test-Path .env)) { Copy-Item .env.example .env }
 ./.venv/Scripts/python -m app.seed
 ./.venv/Scripts/python -m uvicorn app.main:app --reload
 ```
 
-后端地址为 `http://127.0.0.1:8000`，API 文档为 `http://127.0.0.1:8000/docs`。上传文件保存在 `backend/uploads/`，SQLite 数据库默认为 `backend/skillhub.db`。
+后端地址为 `http://127.0.0.1:8000`，接口文档为 `http://127.0.0.1:8000/docs`。SQLite 数据库默认为 `backend/skillhub.db`，上传文件保存在 `backend/uploads/`。
 
-## 前端安装与启动
-
-另开一个 PowerShell：
+前端（另开一个 PowerShell）：
 
 ```powershell
 cd frontend
 npm install
-Copy-Item .env.example .env
+if (-not (Test-Path .env)) { Copy-Item .env.example .env }
 npm run dev
 ```
 
-访问 `http://localhost:5173`。Vite 会将 `/api` 和 `/uploads` 代理到 FastAPI。
+访问 `http://localhost:5173`。开发服务器会把 `/api` 与 `/uploads` 请求转发给后端。
+
+## AI 配置
+
+在 `backend/.env` 中配置以下变量。不要提交真实密钥：
+
+```dotenv
+DASHSCOPE_API_KEY=你的密钥
+DASHSCOPE_BASE_URL=https://dashscope.aliyuncs.com/compatible-mode/v1
+DASHSCOPE_MODEL=qwen3.7-flash
+```
+
+未配置密钥或模型调用失败时，系统会保存真实失败状态与脱敏错误，并允许重试，不会生成假结果。模型名称需要具备图像理解能力；若账号无权使用默认模型，请只修改 `DASHSCOPE_MODEL`。
 
 ## 演示账号
 
-所有账号密码均为 `Student123!`：
+所有种子账号密码均为 `Student123!`：
 
-| 用户名 | 角色 |
-| --- | --- |
-| `admin` | 管理员 |
-| `student` | 数据方向学生 |
-| `designer` | 设计方向学生 |
-| `campus_org` | 校园需求方 |
+| 用户名 | 角色 | 演示重点 |
+| --- | --- | --- |
+| `student` | 学生 | 技能、作品证据、授权与 AI 答辩 |
+| `designer` | 学生 | 设计作品和已完成项目记录 |
+| `campus_org` | 项目方 | 发布项目、查看授权申请、验收评价 |
+| `reviewer` | 评审 | 人工证据复核与调分理由 |
+| `admin` | 管理员 | 用户、项目、AI 运行与复核分配 |
 
-## 测试与构建
+## 建议演示顺序
+
+1. 以 `student` 登录，打开“作品证据与 AI 答辩”，说明证据字段、可见范围和 AI 授权边界。
+2. 上传一张静态视觉作品，明确勾选 AI 处理同意，发起 AI 观察。
+3. 对照“可观察事实”和“证据缺口”回答三道动态问题，提交复评。
+4. 以 `admin` 查看 AI 运行和待人工复核记录，并分配给 `reviewer`。
+5. 以 `reviewer` 核对原件与答辩，填写调分/决定理由；通过后展示公开核验页。
+6. 以 `campus_org` 发布带交付物与验收标准的项目，查看申请者主动授权的作品。
+7. 完成项目并评价，再回到学生公开页，说明“人工核验”和“真实项目验证”是两条独立证据。
+
+## 验证
 
 ```powershell
 cd backend
 ./.venv/Scripts/python -m pytest -q --cov=app --cov-report=term-missing
 
 cd ../frontend
-npm run test -- --run --maxWorkers=1 --no-file-parallelism
+npm run test -- --run
+npm run lint
 npm run build
 ```
 
-## 课堂演示流程
-
-1. 使用 `campus_org` 发布项目。
-2. 使用 `admin` 在项目审核页通过项目。
-3. 使用 `student` 在项目大厅提交申请。
-4. 使用 `campus_org` 录用学生并依次开始、结束项目。
-5. 需求方填写四维评价，项目自动完成。
-6. 返回学生工作台，查看作品、完成项目和评价共同产生的技能积分与等级更新。
-
-## 第二阶段扩展
-
-- 将 `DATABASE_URL` 切换为 PostgreSQL，并用 Alembic 管理迁移。
-- 将本地上传替换为 OSS/S3 对象存储和签名 URL。
-- 在独立 `agents/` 服务中加入项目匹配、需求分析和成长建议 Agent，保持现有 REST 边界不变。
-- 生产环境应更换 JWT 密钥、启用 HTTPS、限制 CORS、增加审计日志与上传病毒扫描。
+当前仓库不包含支付、即时聊天、校方背书、生产级对象存储或自动录用。生产部署还需更换 JWT 密钥、启用 HTTPS、限制跨域、执行上传内容安全检查，并迁移到受管数据库与对象存储。
