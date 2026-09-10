@@ -18,12 +18,28 @@ def test_student_registration_creates_editable_profile(client):
     response = client.patch(
         "/api/v1/profiles/me",
         headers={"Authorization": f"Bearer {token}"},
-        json={"display_name": "林同学", "bio": "数据产品学习者"},
+        json={
+            "display_name": "林同学",
+            "avatar_url": "https://example.com/lin.png",
+            "school": "南方大学",
+            "college": "计算机学院",
+            "major": "数据科学",
+            "grade": "大三",
+            "bio": "数据产品学习者",
+        },
     )
 
     assert registered.status_code == 201
     assert response.status_code == 200
     assert response.json()["display_name"] == "林同学"
+    assert response.json()["avatar_url"] == "https://example.com/lin.png"
+    assert response.json()["school"] == "南方大学"
+    assert response.json()["college"] == "计算机学院"
+    assert response.json()["major"] == "数据科学"
+    assert response.json()["grade"] == "大三"
+    public = client.get(f"/api/v1/profiles/students/{registered.json()['id']}")
+    assert public.json()["school"] == "南方大学"
+    assert public.json()["major"] == "数据科学"
 
 
 def test_requester_registration_creates_requester_profile(client):

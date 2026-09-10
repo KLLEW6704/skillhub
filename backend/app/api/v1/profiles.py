@@ -10,7 +10,12 @@ from app.schemas.profile import (
     RequesterProfileResponse,
     StudentProfileResponse,
 )
-from app.services.profiles import get_or_create_profile, public_student, update_profile
+from app.services.profiles import (
+    get_or_create_profile,
+    profile_to_response,
+    public_student,
+    update_profile,
+)
 
 
 router = APIRouter(prefix="/profiles", tags=["profiles"])
@@ -20,7 +25,8 @@ router = APIRouter(prefix="/profiles", tags=["profiles"])
 def me(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     if current_user.role in {UserRole.admin, UserRole.reviewer}:
         raise HTTPException(status_code=403, detail="管理员没有业务资料")
-    return get_or_create_profile(db, current_user)
+    profile = get_or_create_profile(db, current_user)
+    return profile_to_response(current_user, profile)
 
 
 @router.patch("/me", response_model=StudentProfileResponse | RequesterProfileResponse)

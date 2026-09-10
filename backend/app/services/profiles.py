@@ -26,19 +26,39 @@ def get_or_create_profile(db: Session, user: User):
     return profile
 
 
+def profile_to_response(user: User, profile):
+    if user.role == UserRole.student:
+        return {
+            "user_id": user.id,
+            "display_name": profile.display_name,
+            "avatar_url": profile.avatar_url,
+            "bio": profile.bio,
+            "school": user.school,
+            "college": user.college,
+            "major": user.major,
+            "grade": user.grade,
+        }
+    return profile
+
+
 def update_profile(db: Session, user: User, payload: ProfileUpdate):
     profile = get_or_create_profile(db, user)
-    allowed = (
+    profile_fields = (
         {"display_name", "avatar_url", "bio"}
         if user.role == UserRole.student
         else {"organization_name", "organization_type", "description"}
     )
+    user_fields = {"school", "college", "major", "grade"}
     for field, value in payload.model_dump(exclude_unset=True).items():
-        if field in allowed:
+        if field in profile_fields:
             setattr(profile, field, value)
+        elif user.role == UserRole.student and field in user_fields:
+            setattr(user, field, value)
     db.commit()
     db.refresh(profile)
-    return profile
+    if user.role == UserRole.student:
+        db.refresh(user)
+    return profile_to_response(user, profile)
 
 
 def public_student(db: Session, user: User) -> dict:

@@ -8,6 +8,10 @@ class ProfileUpdate(BaseModel):
     display_name: str | None = Field(default=None, max_length=80)
     avatar_url: str | None = Field(default=None, max_length=500)
     bio: str | None = Field(default=None, max_length=2000)
+    school: str | None = Field(default=None, max_length=120)
+    college: str | None = Field(default=None, max_length=120)
+    major: str | None = Field(default=None, max_length=120)
+    grade: str | None = Field(default=None, max_length=30)
     organization_name: str | None = Field(default=None, max_length=120)
     organization_type: str | None = Field(default=None, max_length=80)
     description: str | None = Field(default=None, max_length=2000)
@@ -20,6 +24,10 @@ class StudentProfileResponse(BaseModel):
     display_name: str
     avatar_url: str | None
     bio: str | None
+    school: str | None
+    college: str | None
+    major: str | None
+    grade: str | None
 
 
 class RequesterProfileResponse(BaseModel):
@@ -33,9 +41,5 @@ class RequesterProfileResponse(BaseModel):
 
 class PublicStudentResponse(StudentProfileResponse):
     username: str
-    school: str | None
-    college: str | None
-    major: str | None
-    grade: str | None
     skills: list[SkillResponse]
     portfolios: list[PortfolioResponse]
