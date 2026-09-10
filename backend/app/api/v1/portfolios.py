@@ -8,6 +8,7 @@ from app.core.config import Settings
 from app.models.application import Application, ApplicationPortfolioGrant
 from app.models.portfolio import EvidenceVisibility, Portfolio, PortfolioEvidence
 from app.models.project import Project
+from app.models.verification import ReviewAssignment, SkillVerification
 from app.models.user import User, UserRole
 from app.schemas.portfolio import PortfolioResponse, PortfolioUpdate
 from app.services.portfolios import (
@@ -115,6 +116,19 @@ def portfolio_file(
                 )
             )
             allowed = allowed or grant is not None
+        if current_user.role == UserRole.reviewer:
+            assignment = db.scalar(
+                select(ReviewAssignment)
+                .join(
+                    SkillVerification,
+                    SkillVerification.id == ReviewAssignment.verification_id,
+                )
+                .where(
+                    ReviewAssignment.reviewer_id == current_user.id,
+                    SkillVerification.portfolio_id == portfolio.id,
+                )
+            )
+            allowed = allowed or assignment is not None
     if not allowed:
         raise HTTPException(status_code=404, detail="作品文件不存在")
     path = upload_path(Settings().upload_dir, portfolio.file_url)

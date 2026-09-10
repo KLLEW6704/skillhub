@@ -18,7 +18,7 @@ router = APIRouter(prefix="/profiles", tags=["profiles"])
 
 @router.get("/me", response_model=StudentProfileResponse | RequesterProfileResponse)
 def me(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
-    if current_user.role == UserRole.admin:
+    if current_user.role in {UserRole.admin, UserRole.reviewer}:
         raise HTTPException(status_code=403, detail="管理员没有业务资料")
     return get_or_create_profile(db, current_user)
 
@@ -29,7 +29,7 @@ def patch_me(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    if current_user.role == UserRole.admin:
+    if current_user.role in {UserRole.admin, UserRole.reviewer}:
         raise HTTPException(status_code=403, detail="管理员没有业务资料")
     return update_profile(db, current_user, payload)
 

@@ -300,6 +300,9 @@ def run_reassessment(
         structured["result_label"] = RESULT_LABEL
         run.raw_output = raw
         run.structured_result = _json(structured)
+        from app.services.verifications import create_pending_verification
+
+        create_pending_verification(db, run, portfolio)
         _transition(db, run, AssessmentStatus.succeeded)
     except Exception as exc:
         if hasattr(exc, "last_output"):

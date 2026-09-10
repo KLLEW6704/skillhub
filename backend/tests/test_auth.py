@@ -32,6 +32,17 @@ def test_admin_role_cannot_be_self_registered(client):
     assert response.status_code == 422
 
 
+def test_reviewer_role_cannot_be_self_registered(client):
+    response = client.post(
+        "/api/v1/auth/register",
+        json=registration_payload(
+            username="bad_reviewer", email="reviewer@example.com", role="reviewer"
+        ),
+    )
+
+    assert response.status_code == 422
+
+
 def test_duplicate_username_is_rejected(client):
     assert client.post("/api/v1/auth/register", json=registration_payload()).status_code == 201
 

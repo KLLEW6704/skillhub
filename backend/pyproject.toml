@@ -19,6 +19,7 @@ dependencies = [
     "email-validator",
     "httpx",
     "pillow",
+    "qrcode[pil]",
 ]
 
 [project.optional-dependencies]
