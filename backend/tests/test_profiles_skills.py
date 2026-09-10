@@ -1,3 +1,6 @@
+from app.models.portfolio import Portfolio
+
+
 def test_student_registration_creates_editable_profile(client):
     registration = {
         "username": "profile_student",
@@ -91,3 +94,47 @@ def test_public_student_profile_contains_skill_growth(client, student_headers, s
     assert response.status_code == 200
     assert response.json()["skills"][0]["level"] == 1
     assert response.json()["skills"][0]["growth_score"] == 0
+
+
+def test_student_can_update_and_delete_unlinked_skill(client, student_headers):
+    created = client.post(
+        "/api/v1/skills",
+        headers=student_headers,
+        json={"name": "Python", "description": "数据处理"},
+    ).json()
+
+    updated = client.patch(
+        f"/api/v1/skills/{created['id']}",
+        headers=student_headers,
+        json={"name": "Python 自动化", "description": "数据处理与自动化"},
+    )
+    deleted = client.delete(
+        f"/api/v1/skills/{created['id']}", headers=student_headers
+    )
+
+    assert updated.status_code == 200
+    assert updated.json()["name"] == "Python 自动化"
+    assert deleted.status_code == 204
+    assert client.get("/api/v1/skills", headers=student_headers).json() == []
+
+
+def test_skill_linked_to_evidence_cannot_be_deleted(
+    client, student_headers, student_skill, student_user, db_session
+):
+    db_session.add(
+        Portfolio(
+            user_id=student_user.id,
+            skill_id=student_skill.id,
+            title="关联作品",
+            file_url="/uploads/evidence.png",
+            file_type="image/png",
+        )
+    )
+    db_session.commit()
+
+    response = client.delete(
+        f"/api/v1/skills/{student_skill.id}", headers=student_headers
+    )
+
+    assert response.status_code == 409
+    assert response.json()["detail"] == "技能仍有关联作品，不能删除"
