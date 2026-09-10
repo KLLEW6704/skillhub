@@ -87,6 +87,9 @@ def test_successful_reassessment_creates_pending_human_verification(
     assert verification.assessment_run_id == reassessment["id"]
     assert verification.portfolio_id == portfolio["id"]
     assert verification.status == VerificationStatus.pending_human_review
+    mine = client.get("/api/v1/verifications/mine", headers=student_headers)
+    assert mine.status_code == 200
+    assert mine.json()[0]["status"] == "pending_human_review"
 
 
 def test_reviewer_assignment_exposes_evidence_defense_and_rubric(
@@ -119,6 +122,12 @@ def test_reviewer_assignment_exposes_evidence_defense_and_rubric(
     queue = client.get("/api/v1/reviewer/assignments", headers=reviewer_headers)
 
     assert assigned.status_code == 200
+    admin_queue = client.get(
+        "/api/v1/admin/verifications?status=pending_human_review",
+        headers=admin_headers,
+    )
+    assert admin_queue.status_code == 200
+    assert admin_queue.json()[0]["id"] == verification.id
     assert queue.status_code == 200
     item = queue.json()[0]
     assert item["verification"]["status"] == "pending_human_review"
@@ -127,6 +136,44 @@ def test_reviewer_assignment_exposes_evidence_defense_and_rubric(
     assert [row["criterion"] for row in item["ai_result"]["criteria"]] == CRITERIA
     file_response = client.get(item["evidence"]["file_url"], headers=reviewer_headers)
     assert file_response.status_code == 200
+
+
+def test_requester_sees_only_authorized_ai_summary_with_pending_notice(
+    client,
+    student_headers,
+    student_skill,
+    requester_headers,
+    admin_headers,
+    tiny_png,
+    tmp_path,
+    monkeypatch,
+):
+    from tests.test_applications import approved_project
+
+    portfolio, _, _ = create_pending_verification(
+        client,
+        student_headers,
+        student_skill,
+        tiny_png,
+        tmp_path,
+        monkeypatch,
+    )
+    project = approved_project(client, requester_headers, admin_headers)
+    client.post(
+        f"/api/v1/projects/{project['id']}/applications",
+        headers=student_headers,
+        json={"portfolio_ids": [portfolio["id"]]},
+    )
+
+    applicants = client.get(
+        f"/api/v1/projects/{project['id']}/applications",
+        headers=requester_headers,
+    ).json()
+
+    authorized = applicants[0]["authorized_portfolios"][0]
+    assert authorized["ai_assessment"]["total_score"] == 75.0
+    assert authorized["verification_status"] == "pending_human_review"
+    assert authorized["result_label"] == "AI 辅助初评、待人工复核"
 
 
 def test_human_score_changes_require_reason_and_save_before_after_diff(
@@ -239,6 +286,11 @@ def test_only_verified_result_gets_pilot_credential_and_public_safe_record(
     assert "学校官方认证" not in public_text
     assert qr.status_code == 200
     assert qr.headers["content-type"].startswith("image/png")
+    public_list = client.get(
+        f"/api/v1/profiles/students/{student_skill.user_id}/verified-credentials"
+    )
+    assert public_list.status_code == 200
+    assert public_list.json()[0]["credential_number"] == credential["credential_number"]
 
 
 def test_more_evidence_decision_never_issues_credential(

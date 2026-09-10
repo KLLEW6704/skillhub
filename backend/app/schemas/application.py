@@ -5,6 +5,7 @@ from pydantic import BaseModel, ConfigDict, Field
 from app.models.application import ApplicationStatus
 from app.schemas.portfolio import PortfolioResponse
 from app.schemas.skill import SkillResponse
+from app.models.verification import VerificationStatus
 
 
 class ApplicationCreate(BaseModel):
@@ -29,6 +30,12 @@ class ApplicantSummary(BaseModel):
     skills: list[SkillResponse]
 
 
+class AuthorizedPortfolioResponse(PortfolioResponse):
+    ai_assessment: dict | None
+    verification_status: VerificationStatus | None
+    result_label: str | None
+
+
 class RequesterApplicationResponse(ApplicationResponse):
     student: ApplicantSummary
-    authorized_portfolios: list[PortfolioResponse]
+    authorized_portfolios: list[AuthorizedPortfolioResponse]

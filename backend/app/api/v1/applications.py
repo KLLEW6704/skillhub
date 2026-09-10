@@ -1,3 +1,5 @@
+import json
+
 from fastapi import APIRouter, Depends
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -5,8 +7,10 @@ from sqlalchemy.orm import Session
 from app.api.deps import get_db, require_roles
 from app.models.application import Application, ApplicationPortfolioGrant, ApplicationStatus
 from app.models.portfolio import Portfolio
+from app.models.assessment import AssessmentRun, AssessmentStage, AssessmentStatus
 from app.models.profile import StudentProfile
 from app.models.skill import Skill
+from app.models.verification import SkillVerification
 from app.models.project import LifecycleStatus, Project
 from app.models.user import User, UserRole
 from app.schemas.application import (
@@ -64,6 +68,43 @@ def project_applications(project_id: int, current: User = Depends(requester_only
             if portfolio_ids
             else []
         )
+        authorized = []
+        for item in portfolios:
+            latest = db.scalar(
+                select(AssessmentRun)
+                .where(
+                    AssessmentRun.portfolio_id == item.id,
+                    AssessmentRun.stage == AssessmentStage.reassessment,
+                    AssessmentRun.status == AssessmentStatus.succeeded,
+                )
+                .order_by(AssessmentRun.created_at.desc())
+            )
+            verification = (
+                db.scalar(
+                    select(SkillVerification).where(
+                        SkillVerification.assessment_run_id == latest.id
+                    )
+                )
+                if latest
+                else None
+            )
+            portfolio_payload = portfolio_to_response(db, item)
+            portfolio_payload.update(
+                {
+                    "ai_assessment": (
+                        json.loads(latest.structured_result)
+                        if latest and latest.structured_result
+                        else None
+                    ),
+                    "verification_status": (
+                        verification.status if verification else None
+                    ),
+                    "result_label": (
+                        "AI 辅助初评、待人工复核" if latest else None
+                    ),
+                }
+            )
+            authorized.append(portfolio_payload)
         result.append(
             {
                 "id": application.id,
@@ -77,9 +118,7 @@ def project_applications(project_id: int, current: User = Depends(requester_only
                     "display_name": profile.display_name if profile else student.username,
                     "skills": skills,
                 },
-                "authorized_portfolios": [
-                    portfolio_to_response(db, item) for item in portfolios
-                ],
+                "authorized_portfolios": authorized,
             }
         )
     return result

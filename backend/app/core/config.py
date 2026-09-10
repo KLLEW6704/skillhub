@@ -17,6 +17,7 @@ class Settings(BaseSettings):
     jwt_secret: str = "change-me-before-production-32-bytes"
     access_token_minutes: int = 30
     frontend_origin: str = "http://localhost:5173"
+    public_api_base_url: str = "http://127.0.0.1:8000"
     upload_dir: Path = Path("uploads")
     max_upload_mb: int = 20
     dashscope_api_key: str | None = None
