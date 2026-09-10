@@ -24,3 +24,26 @@
 .talent-empty-state .secondary-button{margin-top:12px;background:transparent;cursor:pointer}
 @media(max-width:1050px){.talent-filter-fields{grid-template-columns:1fr 1fr}}
 @media(max-width:600px){.talent-filter-panel>header{align-items:flex-start;padding:17px 16px}.talent-filter-panel>header small{display:none}.talent-filter-fields{grid-template-columns:1fr}.talent-filter-fields>label{padding:17px 16px}.talent-filter-panel>footer{align-items:flex-start;flex-direction:column;padding:13px 16px}}
+.project-card-main{display:flex;flex:1;min-width:0;flex-direction:column}
+.project-card-main h3{font:700 25px/1.35 "Noto Serif SC",serif;margin:32px 0 12px}
+.project-card-main>p{display:-webkit-box;overflow:hidden;color:#5d6f68;font-size:14px;line-height:1.7;-webkit-box-orient:vertical;-webkit-line-clamp:3}
+.project-card-aside{display:none}
+.project-archive-page .project-grid{grid-template-columns:1fr;gap:18px;border:0;background:transparent}
+.project-archive-page .project-card{display:grid;grid-template-columns:minmax(0,1.65fr) minmax(280px,.7fr);min-height:0;padding:0;border:1px solid var(--line);transition:border-color .2s ease,box-shadow .2s ease}
+.project-archive-page .project-card:hover{border-color:rgba(23,60,50,.48);box-shadow:8px 8px 0 rgba(23,60,50,.07)}
+.project-archive-page .project-card-main{min-height:330px;padding:30px 34px}
+.project-archive-page .project-card-main h3{max-width:760px;font-size:clamp(27px,2.3vw,36px)}
+.project-archive-page .project-card-main>p{max-width:720px;font-size:16px}
+.project-archive-page .project-card-main .project-meta{display:none}
+.project-archive-page .project-card-aside{display:flex;flex-direction:column;padding:28px;border-left:1px solid var(--line);background:rgba(23,60,50,.055)}
+.project-card-status{display:flex;align-items:center;justify-content:space-between;gap:15px;padding-bottom:20px;border-bottom:1px solid var(--line)}
+.project-card-status small,.project-card-delivery small{color:#687972;font-size:12px}
+.project-card-status strong{padding:6px 10px;border:1px solid var(--ink);font-size:13px}
+.project-card-aside dl{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin:24px 0}
+.project-card-aside dl div{display:grid;gap:6px}
+.project-card-aside dt{color:#70817a;font-size:12px}
+.project-card-aside dd{margin:0;font-size:15px;font-weight:700}
+.project-card-delivery{padding:18px 0;border-top:1px solid var(--line)}
+.project-card-delivery p{display:-webkit-box;overflow:hidden;margin:8px 0 0;font-size:14px;line-height:1.65;-webkit-box-orient:vertical;-webkit-line-clamp:2}
+.project-card-link{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-top:auto;padding-top:20px;border-top:1px solid var(--ink);font-size:14px;font-weight:700}
+@media(max-width:760px){.project-archive-page .project-card{grid-template-columns:1fr}.project-archive-page .project-card-main{min-height:0;padding:24px 20px}.project-archive-page .project-card-aside{padding:22px 20px;border-top:1px solid var(--line);border-left:0}.project-card-aside dl{grid-template-columns:1fr 1fr}}
