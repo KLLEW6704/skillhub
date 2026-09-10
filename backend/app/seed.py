@@ -1,13 +1,21 @@
 from datetime import date, timedelta
+from pathlib import Path
 
+from PIL import Image, ImageDraw
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from app.core.config import get_settings
 from app.core.security import hash_password
 from app.db.base import Base
 from app.db.session import SessionLocal, engine
 from app.models.application import Application, ApplicationStatus
-from app.models.portfolio import Portfolio
+from app.models.portfolio import (
+    EvidenceVisibility,
+    Portfolio,
+    PortfolioEvidence,
+    PortfolioEvidenceSkill,
+)
 from app.models.profile import RequesterProfile, StudentProfile
 from app.models.project import AuditStatus, LifecycleStatus, Project, ProjectRequiredSkill
 from app.models.review import Review
@@ -46,6 +54,83 @@ def ensure_skill(db: Session, user: User, name: str, description: str) -> Skill:
     return skill
 
 
+def render_demo_asset(path: Path, *, title: str, accent: str) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    image = Image.new("RGB", (1200, 800), "#f4efe5")
+    draw = ImageDraw.Draw(image)
+    draw.rectangle((70, 70, 1130, 730), fill="#fffaf0", outline="#222222", width=4)
+    draw.rectangle((70, 70, 1130, 205), fill=accent)
+    draw.text((105, 112), "SKILLHUB DEMO SAMPLE", fill="white")
+    draw.text((105, 280), title, fill="#222222")
+    draw.line((105, 355, 1095, 355), fill="#222222", width=3)
+    draw.text((105, 405), "Evidence -> AI defense -> Human review", fill="#555555")
+    draw.text((105, 650), "DEMO ONLY / NOT A REAL STUDENT WORK", fill="#a33b2b")
+    image.save(path, format="PNG", optimize=True)
+
+
+def ensure_demo_portfolio(
+    db: Session,
+    user: User,
+    skill: Skill,
+    *,
+    title: str,
+    legacy_title: str,
+    filename: str,
+    evidence_type: str,
+) -> Portfolio:
+    portfolio = db.scalar(
+        select(Portfolio).where(
+            Portfolio.user_id == user.id,
+            Portfolio.title.in_([title, legacy_title]),
+        )
+    )
+    if portfolio is None:
+        portfolio = Portfolio(
+            user_id=user.id,
+            skill_id=skill.id,
+            title=title,
+            description="演示样本，非真实学生成果；用于验证 SkillHub 作品证据流程。",
+            file_url=f"/uploads/{filename}",
+            file_type="image/png",
+        )
+        db.add(portfolio)
+        db.flush()
+    else:
+        portfolio.title = title
+        portfolio.description = "演示样本，非真实学生成果；用于验证 SkillHub 作品证据流程。"
+        portfolio.file_url = f"/uploads/{filename}"
+        portfolio.file_type = "image/png"
+    evidence = db.scalar(
+        select(PortfolioEvidence).where(
+            PortfolioEvidence.portfolio_id == portfolio.id
+        )
+    )
+    if evidence is None:
+        evidence = PortfolioEvidence(
+            portfolio_id=portfolio.id,
+            evidence_type=evidence_type,
+            creation_context="SkillHub 功能演示场景",
+            personal_role="系统演示数据，无真实学生贡献声明",
+            process_description="由种子脚本生成的稳定视觉样例",
+            iteration_notes="仅用于产品流程验证",
+            visibility=EvidenceVisibility.public,
+        )
+        db.add(evidence)
+        db.flush()
+    else:
+        evidence.evidence_type = evidence_type
+        evidence.visibility = EvidenceVisibility.public
+    link = db.scalar(
+        select(PortfolioEvidenceSkill).where(
+            PortfolioEvidenceSkill.evidence_id == evidence.id,
+            PortfolioEvidenceSkill.skill_id == skill.id,
+        )
+    )
+    if link is None:
+        db.add(PortfolioEvidenceSkill(evidence_id=evidence.id, skill_id=skill.id))
+    return portfolio
+
+
 def ensure_project(db: Session, creator: User, title: str, audit: AuditStatus, lifecycle: LifecycleStatus, skills: list[str], days: int) -> Project:
     project = db.scalar(select(Project).where(Project.title == title))
     if project:
@@ -74,7 +159,7 @@ def ensure_application(db: Session, project: Project, student: User, status: App
     return application
 
 
-def seed_database(db: Session) -> None:
+def seed_database(db: Session, upload_dir: Path | None = None) -> None:
     ensure_user(db, "admin", "admin@skillhub.example.com", UserRole.admin)
     student = ensure_user(db, "student", "student@skillhub.example.com", UserRole.student, school="SkillHub 大学", college="计算机学院", major="数据科学", grade="2025")
     designer = ensure_user(db, "designer", "designer@skillhub.example.com", UserRole.student, school="SkillHub 大学", college="设计学院", major="视觉传达", grade="2024")
@@ -82,10 +167,35 @@ def seed_database(db: Session) -> None:
 
     python_skill = ensure_skill(db, student, "Python", "数据处理、接口开发与自动化")
     design_skill = ensure_skill(db, designer, "视觉设计", "校园品牌与活动视觉设计")
-    if not db.scalar(select(Portfolio).where(Portfolio.user_id == student.id, Portfolio.title == "校园数据看板")):
-        db.add(Portfolio(user_id=student.id, skill_id=python_skill.id, title="校园数据看板", description="课程数据可视化作品", file_url="/uploads/demo-dashboard.pdf", file_type="application/pdf"))
-    if not db.scalar(select(Portfolio).where(Portfolio.user_id == designer.id, Portfolio.title == "迎新视觉系统")):
-        db.add(Portfolio(user_id=designer.id, skill_id=design_skill.id, title="迎新视觉系统", description="迎新季主视觉与延展", file_url="/uploads/demo-design.png", file_type="image/png"))
+    ensure_demo_portfolio(
+        db,
+        student,
+        python_skill,
+        title="校园数据看板（演示样本）",
+        legacy_title="校园数据看板",
+        filename="skillhub-demo-dashboard.png",
+        evidence_type="data_visualization",
+    )
+    ensure_demo_portfolio(
+        db,
+        designer,
+        design_skill,
+        title="迎新视觉系统（演示样本）",
+        legacy_title="迎新视觉系统",
+        filename="skillhub-demo-poster.png",
+        evidence_type="visual_poster",
+    )
+    if upload_dir is not None:
+        render_demo_asset(
+            upload_dir / "skillhub-demo-dashboard.png",
+            title="CAMPUS DATA DASHBOARD",
+            accent="#315b54",
+        )
+        render_demo_asset(
+            upload_dir / "skillhub-demo-poster.png",
+            title="WELCOME VISUAL POSTER",
+            accent="#b6533c",
+        )
     db.flush()
 
     ensure_project(db, requester, "校园公益短片招募", AuditStatus.approved, LifecycleStatus.recruiting, ["视觉设计"], 30)
@@ -105,7 +215,7 @@ def seed_database(db: Session) -> None:
 def main() -> None:
     Base.metadata.create_all(engine)
     with SessionLocal() as db:
-        seed_database(db)
+        seed_database(db, get_settings().upload_dir)
     print("SkillHub demo data is ready.")
 
 

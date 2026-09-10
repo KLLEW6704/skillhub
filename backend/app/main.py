@@ -2,11 +2,10 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.staticfiles import StaticFiles
 
 from app.core.config import get_settings
 from app.api.v1.router import api_router
-from app.db.base import Base
+from app.db.migrations import run_additive_migrations
 from app.db.session import engine
 
 
@@ -15,7 +14,7 @@ settings.upload_dir.mkdir(parents=True, exist_ok=True)
 
 @asynccontextmanager
 async def lifespan(_: FastAPI):
-    Base.metadata.create_all(engine)
+    run_additive_migrations(engine)
     yield
 
 
@@ -27,7 +26,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-app.mount("/uploads", StaticFiles(directory=settings.upload_dir), name="uploads")
 app.include_router(api_router, prefix=settings.api_prefix)
 
 

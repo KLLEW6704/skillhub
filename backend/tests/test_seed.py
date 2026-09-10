@@ -1,3 +1,5 @@
+from pathlib import Path
+
 from sqlalchemy import func, select
 
 from app.models.application import Application
@@ -39,6 +41,21 @@ def test_seed_creates_documented_demo_accounts(db_session):
     usernames = set(db_session.scalars(select(User.username)))
 
     assert {"admin", "student", "designer", "campus_org"} <= usernames
+
+
+def test_seed_creates_stable_labeled_demo_assets(db_session, tmp_path: Path):
+    upload_dir = tmp_path / "uploads"
+
+    seed_database(db_session, upload_dir)
+
+    portfolios = list(db_session.scalars(select(Portfolio)))
+    assert len(portfolios) == 2
+    assert all("演示样本" in item.title for item in portfolios)
+    assert all("非真实学生成果" in (item.description or "") for item in portfolios)
+    assert {path.name for path in upload_dir.iterdir()} == {
+        "skillhub-demo-dashboard.png",
+        "skillhub-demo-poster.png",
+    }
 
 
 def test_seeded_student_can_login_and_read_current_user(client, db_session):

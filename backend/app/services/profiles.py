@@ -3,8 +3,10 @@ from sqlalchemy.orm import Session
 
 from app.models.profile import RequesterProfile, StudentProfile
 from app.models.skill import Skill
+from app.models.portfolio import EvidenceVisibility, Portfolio, PortfolioEvidence
 from app.models.user import User, UserRole
 from app.schemas.profile import ProfileUpdate
+from app.services.portfolios import portfolio_to_response
 
 
 def create_profile_for_user(db: Session, user: User) -> None:
@@ -42,6 +44,19 @@ def update_profile(db: Session, user: User, payload: ProfileUpdate):
 def public_student(db: Session, user: User) -> dict:
     profile = get_or_create_profile(db, user)
     skills = list(db.scalars(select(Skill).where(Skill.user_id == user.id)))
+    portfolios = list(
+        db.scalars(
+            select(Portfolio)
+            .join(
+                PortfolioEvidence,
+                PortfolioEvidence.portfolio_id == Portfolio.id,
+            )
+            .where(
+                Portfolio.user_id == user.id,
+                PortfolioEvidence.visibility == EvidenceVisibility.public,
+            )
+        )
+    )
     return {
         "user_id": user.id,
         "username": user.username,
@@ -53,4 +68,5 @@ def public_student(db: Session, user: User) -> dict:
         "avatar_url": profile.avatar_url,
         "bio": profile.bio,
         "skills": skills,
+        "portfolios": [portfolio_to_response(db, item) for item in portfolios],
     }

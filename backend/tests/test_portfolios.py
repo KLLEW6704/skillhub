@@ -18,10 +18,11 @@ def test_upload_portfolio_uses_generated_safe_filename(
     )
 
     assert response.status_code == 201
-    assert response.json()["file_url"].startswith("/uploads/")
-    stored_name = response.json()["file_url"].removeprefix("/uploads/")
-    assert stored_name != "photo.png"
-    assert (upload_dir / stored_name).read_bytes() == tiny_png
+    assert response.json()["file_url"] == f"/api/v1/portfolios/{response.json()['id']}/file"
+    stored_files = list(upload_dir.iterdir())
+    assert len(stored_files) == 1
+    assert stored_files[0].name != "photo.png"
+    assert stored_files[0].read_bytes() == tiny_png
 
 
 def test_upload_rejects_executable(
@@ -84,7 +85,7 @@ def test_delete_portfolio_removes_owned_file(
         data={"skill_id": student_skill.id, "title": "待删除作品"},
         files={"file": ("photo.png", tiny_png, "image/png")},
     )
-    stored_path = upload_dir / created.json()["file_url"].removeprefix("/uploads/")
+    stored_path = next(upload_dir.iterdir())
 
     response = client.delete(
         f"/api/v1/portfolios/{created.json()['id']}", headers=student_headers

@@ -1,6 +1,7 @@
 from pydantic import BaseModel, ConfigDict, Field
 
 from app.schemas.skill import SkillResponse
+from app.schemas.portfolio import PortfolioResponse
 
 
 class ProfileUpdate(BaseModel):
@@ -37,3 +38,4 @@ class PublicStudentResponse(StudentProfileResponse):
     major: str | None
     grade: str | None
     skills: list[SkillResponse]
+    portfolios: list[PortfolioResponse]

@@ -4,12 +4,23 @@ from fastapi import HTTPException
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.models.application import Application, ApplicationStatus
+from app.models.application import (
+    Application,
+    ApplicationPortfolioGrant,
+    ApplicationStatus,
+)
+from app.models.portfolio import Portfolio
 from app.models.project import AuditStatus, LifecycleStatus, Project
 from app.models.user import User
 
 
-def apply_to_project(db: Session, student: User, project_id: int, message: str | None) -> Application:
+def apply_to_project(
+    db: Session,
+    student: User,
+    project_id: int,
+    message: str | None,
+    portfolio_ids: list[int] | None = None,
+) -> Application:
     project = db.get(Project, project_id)
     if project is None or project.audit_status != AuditStatus.approved:
         raise HTTPException(status_code=404, detail="项目不存在")
@@ -20,8 +31,27 @@ def apply_to_project(db: Session, student: User, project_id: int, message: str |
     existing = db.scalar(select(Application).where(Application.project_id == project_id, Application.student_id == student.id))
     if existing:
         raise HTTPException(status_code=409, detail="不能重复申请同一项目")
+    selected_ids = list(dict.fromkeys(portfolio_ids or []))
+    if selected_ids:
+        owned_ids = set(
+            db.scalars(
+                select(Portfolio.id).where(
+                    Portfolio.user_id == student.id, Portfolio.id.in_(selected_ids)
+                )
+            )
+        )
+        if owned_ids != set(selected_ids):
+            raise HTTPException(status_code=404, detail="选择的作品不存在")
     application = Application(project_id=project_id, student_id=student.id, message=message)
-    db.add(application); db.commit(); db.refresh(application)
+    db.add(application)
+    db.flush()
+    for portfolio_id in selected_ids:
+        db.add(
+            ApplicationPortfolioGrant(
+                application_id=application.id, portfolio_id=portfolio_id
+            )
+        )
+    db.commit(); db.refresh(application)
     return application
 
 

@@ -1,4 +1,5 @@
 from collections.abc import Generator
+import base64
 from pathlib import Path
 
 import pytest
@@ -135,7 +136,9 @@ def other_student_skill(db_session: Session) -> Skill:
 
 @pytest.fixture
 def tiny_png() -> bytes:
-    return b"\x89PNG\r\n\x1a\n" + b"test-image"
+    return base64.b64decode(
+        "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII="
+    )
 
 
 @pytest.fixture

@@ -11,6 +11,9 @@ from app.models.user import User, UserRole
 
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login")
+optional_oauth2_scheme = OAuth2PasswordBearer(
+    tokenUrl="/api/v1/auth/login", auto_error=False
+)
 
 
 def get_current_user(
@@ -31,6 +34,23 @@ def get_current_user(
         raise credentials_error
     if not user.is_active:
         raise HTTPException(status_code=403, detail="用户已停用")
+    return user
+
+
+def get_optional_user(
+    token: str | None = Depends(optional_oauth2_scheme),
+    db: Session = Depends(get_db),
+) -> User | None:
+    if token is None:
+        return None
+    try:
+        payload = decode_access_token(token)
+        user_id = int(payload["sub"])
+    except (jwt.PyJWTError, KeyError, TypeError, ValueError):
+        return None
+    user = db.get(User, user_id)
+    if user is None or not user.is_active:
+        return None
     return user
 
 
