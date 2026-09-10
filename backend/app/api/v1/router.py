@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 
-from app.api.v1 import admin, applications, auth, portfolios, profiles, projects, reviews, skills
+from app.api.v1 import admin, applications, assessments, auth, portfolios, profiles, projects, reviews, skills
 
 
 api_router = APIRouter()
@@ -12,3 +12,4 @@ api_router.include_router(projects.router)
 api_router.include_router(admin.router)
 api_router.include_router(applications.router)
 api_router.include_router(reviews.router)
+api_router.include_router(assessments.router)

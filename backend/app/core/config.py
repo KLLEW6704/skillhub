@@ -19,6 +19,9 @@ class Settings(BaseSettings):
     frontend_origin: str = "http://localhost:5173"
     upload_dir: Path = Path("uploads")
     max_upload_mb: int = 20
+    dashscope_api_key: str | None = None
+    dashscope_base_url: str = "https://dashscope.aliyuncs.com/compatible-mode/v1"
+    dashscope_model: str = "qwen3.7-flash"
 
 
 @lru_cache
