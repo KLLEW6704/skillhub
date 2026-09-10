@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { AlertCircle, ChevronDown, Eye, SearchX } from 'lucide-react'
+import { AlertCircle, Archive, ChevronDown, Compass, ExternalLink, Eye, FileUp, PencilLine, RefreshCw, SearchX, ShieldCheck, Trash2, UserRound, Workflow } from 'lucide-react'
 import { type FormEvent, useState } from 'react'
 import { SecureImage } from '../../components/SecureImage'
 import { apiBlob, apiRequest } from '../../lib/api'
@@ -137,11 +137,21 @@ function PortfolioCard({ portfolio, skills }: { portfolio: Portfolio; skills: Sk
     <div className="evidence-media">{portfolio.file_type.startsWith('image/') ? <SecureImage src={portfolio.file_url} alt={portfolio.title} /> : <button className="document-preview" onClick={() => openEvidence(portfolio)}>打开作品文件</button>}</div>
     <div className="evidence-body">
       <div className="record-heading"><div><span className="evidence-kicker">{evidenceTypeLabels[portfolio.evidence_type] ?? portfolio.evidence_type}</span><h2>{portfolio.title}</h2></div><span className={`status-chip ${portfolio.visibility}`}>{visibilityLabels[portfolio.visibility]}</span></div>
-      <p>{portfolio.description || '尚未填写作品说明'}</p>
-      <dl className="evidence-details"><div><dt>创作背景</dt><dd>{portfolio.creation_context || '待补充'}</dd></div><div><dt>本人职责</dt><dd>{portfolio.personal_role || '待补充'}</dd></div><div><dt>制作过程</dt><dd>{portfolio.process_description || '待补充'}</dd></div><div><dt>迭代说明</dt><dd>{portfolio.iteration_notes || '待补充'}</dd></div></dl>
-      <div className="record-actions"><button onClick={() => setEditing(!editing)}>{editing ? '取消编辑' : '编辑证据'}</button><button onClick={() => openEvidence(portfolio)}>查看原文件</button><button className="danger-button" onClick={() => confirm('确认删除这份作品证据？此操作不能撤销。') && remove.mutate()}>删除</button></div>
+      <p className="evidence-description">{portfolio.description || '尚未填写作品说明'}</p>
+      <dl className="evidence-story-grid">
+        <div><dt><span><Compass size={18} /></span>创作背景</dt><dd>{portfolio.creation_context || '待补充'}</dd></div>
+        <div><dt><span><UserRound size={18} /></span>本人职责</dt><dd>{portfolio.personal_role || '待补充'}</dd></div>
+        <div><dt><span><Workflow size={18} /></span>制作过程</dt><dd>{portfolio.process_description || '待补充'}</dd></div>
+        <div><dt><span><RefreshCw size={18} /></span>迭代说明</dt><dd>{portfolio.iteration_notes || '待补充'}</dd></div>
+      </dl>
+      <div className="portfolio-actions">
+        <button className="portfolio-action edit-action" onClick={() => setEditing(!editing)} aria-expanded={editing}><PencilLine size={16} />{editing ? '收起编辑' : '编辑证据'}</button>
+        <button className="portfolio-action file-action" onClick={() => openEvidence(portfolio)}><ExternalLink size={16} />查看原文件</button>
+        <button className="portfolio-action delete-action" disabled={remove.isPending} onClick={() => confirm('确认删除这份作品证据？此操作不能撤销。') && remove.mutate()}><Trash2 size={16} />{remove.isPending ? '删除中…' : '删除证据'}</button>
+      </div>
       {remove.isError && <p className="form-error">{message(remove.error)}</p>}
-      {editing && <form className="evidence-edit-form" onSubmit={submitEdit}>
+      {editing && <form className="evidence-edit-form redesigned-edit-form" onSubmit={submitEdit}>
+        <div className="edit-form-heading wide-field"><div><span className="evidence-kicker">UPDATE RECORD</span><h3>编辑证据档案</h3></div><p>修改后将保留作品原文件，并更新档案说明与可见范围。</p></div>
         <label>作品标题<input name="title" defaultValue={portfolio.title} required /></label>
         <label>作品说明<textarea name="description" defaultValue={portfolio.description ?? ''} /></label>
         <label>作品类型<select name="evidence_type" defaultValue={portfolio.evidence_type}>{evidenceTypes.map(([value, label]) => <option value={value} key={value}>{label}</option>)}</select></label>
@@ -152,7 +162,7 @@ function PortfolioCard({ portfolio, skills }: { portfolio: Portfolio; skills: Sk
         <label>公开范围<select name="visibility" defaultValue={portfolio.visibility}>{Object.entries(visibilityLabels).map(([value, label]) => <option value={value} key={value}>{label}</option>)}</select></label>
         <label>关联技能<select name="related_skill_ids" multiple defaultValue={portfolio.related_skill_ids.map(String)}>{skills.map((skill) => <option value={skill.id} key={skill.id}>{skill.name}</option>)}</select></label>
         <label className="check-label"><input name="ai_processing_consent" type="checkbox" defaultChecked={Boolean(portfolio.ai_processing_consent_at)} />我明确同意将该作品副本发送给外部 AI 模型处理</label>
-        <button className="primary-button" disabled={update.isPending}>保存证据</button>
+        <div className="edit-form-actions wide-field"><button className="primary-button" disabled={update.isPending}>{update.isPending ? '保存中…' : '保存修改'}</button><button type="button" className="secondary-button" onClick={() => setEditing(false)}>取消</button></div>
         {update.isError && <p className="form-error">{message(update.error)}</p>}
       </form>}
       <PortfolioAssessment portfolio={portfolio} />
@@ -173,31 +183,49 @@ export function PortfoliosPage() {
   function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     const form = event.currentTarget
-    upload.mutate(new FormData(form), { onSuccess: () => { form.reset(); setPreview(null) } })
+    upload.mutate(new FormData(form), { onSuccess: () => { form.reset(); if (preview) URL.revokeObjectURL(preview); setPreview(null) } })
   }
 
   return <section className="workspace-page evidence-workspace">
     <p className="eyebrow">PORTFOLIO EVIDENCE</p><h1>作品证据</h1>
     <p className="page-intro">先记录背景、职责、过程与迭代，再决定是否授权 AI 或项目方查看。私密作品不会自动公开。</p>
     <p className="boundary-note">AI 只生成可追溯的辅助观察与初评分，不是学校官方认证，也不会自动授予技能称号或录用结果；人工复核和真实项目交付会单独记录。</p>
-    <form className="evidence-upload-form" onSubmit={submit}>
-      <div className="form-section-heading"><span>01</span><div><h2>建立证据档案</h2><p>PNG、JPEG、WebP 支持 AI 观察；PDF、文档和视频可以保存，但暂不进行 AI 评估。</p></div></div>
-      <label>主要技能<select name="skill_id" required>{skills.data?.map((skill) => <option value={skill.id} key={skill.id}>{skill.name}</option>)}</select></label>
-      <label>关联技能<select name="related_skill_ids" multiple>{skills.data?.map((skill) => <option value={skill.id} key={skill.id}>{skill.name}</option>)}</select></label>
-      <label>作品标题<input name="title" required /></label>
-      <label>作品类型<select name="evidence_type" defaultValue="visual_poster">{evidenceTypes.map(([value, label]) => <option value={value} key={value}>{label}</option>)}</select></label>
-      <label className="wide-field">作品说明<textarea name="description" /></label>
-      <label>创作背景<textarea name="creation_context" required /></label>
-      <label>本人职责<textarea name="personal_role" required /></label>
-      <label>制作过程<textarea name="process_description" required /></label>
-      <label>迭代说明<textarea name="iteration_notes" required /></label>
-      <label>公开范围<select name="visibility" defaultValue="private">{Object.entries(visibilityLabels).map(([value, label]) => <option value={value} key={value}>{label}</option>)}</select></label>
-      <label>上传文件<input name="file" type="file" required accept=".png,.jpg,.jpeg,.webp,.gif,.pdf,.doc,.docx,.ppt,.pptx,.mp4,.webm" onChange={(event) => { const file = event.target.files?.[0]; setPreview(file?.type.startsWith('image/') ? URL.createObjectURL(file) : null) }} /></label>
-      {preview && <img className="local-preview" src={preview} alt="待上传作品预览" />}
-      <label className="check-label wide-field"><input name="ai_processing_consent" type="checkbox" />我明确同意将该作品副本发送给外部 AI 模型处理</label>
-      <button className="primary-button" disabled={upload.isPending}>{upload.isPending ? '上传中…' : '保存作品证据'}</button>
-      {upload.isError && <p className="form-error wide-field" role="alert">{message(upload.error)}</p>}
+    <form className="evidence-upload-form evidence-archive-form" onSubmit={submit}>
+      <header className="evidence-form-header"><span className="evidence-form-mark"><Archive size={23} /></span><div><span className="evidence-kicker">NEW EVIDENCE RECORD</span><h2>建立证据档案</h2><p>用作品、过程和职责说明，留下可以被核查的实践记录。</p></div><span className="evidence-form-number">01</span></header>
+      <div className="evidence-form-body">
+        <fieldset className="evidence-form-section">
+          <legend><span>01</span><div><b>作品基本信息</b><small>说明这是什么作品，以及它主要对应哪项技能。</small></div></legend>
+          <div className="evidence-form-grid">
+            <label>主要技能<select name="skill_id" required>{skills.data?.map((skill) => <option value={skill.id} key={skill.id}>{skill.name}</option>)}</select></label>
+            <label>作品类型<select name="evidence_type" defaultValue="visual_poster">{evidenceTypes.map(([value, label]) => <option value={value} key={value}>{label}</option>)}</select></label>
+            <label>作品标题<input name="title" required placeholder="例如：迎新季视觉海报" /></label>
+            <label>关联技能<select name="related_skill_ids" multiple>{skills.data?.map((skill) => <option value={skill.id} key={skill.id}>{skill.name}</option>)}</select><small>可按住 Ctrl 选择多项</small></label>
+            <label className="wide-field">作品说明<textarea name="description" placeholder="简要说明作品目标、内容与最终成果" /></label>
+          </div>
+        </fieldset>
+        <fieldset className="evidence-form-section story-form-section">
+          <legend><span>02</span><div><b>证据叙事</b><small>四个维度会作为 AI 追问与人工复核的重要上下文。</small></div></legend>
+          <div className="story-input-grid">
+            <label><span className="field-title"><Compass size={17} />创作背景</span><textarea name="creation_context" required placeholder="为什么要做这项作品？面向什么场景？" /></label>
+            <label><span className="field-title"><UserRound size={17} />本人职责</span><textarea name="personal_role" required placeholder="你具体负责了哪些部分？" /></label>
+            <label><span className="field-title"><Workflow size={17} />制作过程</span><textarea name="process_description" required placeholder="从准备到完成经历了哪些步骤？" /></label>
+            <label><span className="field-title"><RefreshCw size={17} />迭代说明</span><textarea name="iteration_notes" required placeholder="根据什么反馈做过哪些修改？" /></label>
+          </div>
+        </fieldset>
+        <fieldset className="evidence-form-section">
+          <legend><span>03</span><div><b>文件与权限</b><small>选择原始成果，并决定谁能够看到这份证据。</small></div></legend>
+          <div className="asset-permission-grid">
+            <label className="file-upload-card"><span className="file-upload-icon"><FileUp size={22} /></span><b>选择作品文件</b><small>图片支持 AI 观察；PDF、文档和视频仅保存为证据。</small><input name="file" type="file" required accept=".png,.jpg,.jpeg,.webp,.gif,.pdf,.doc,.docx,.ppt,.pptx,.mp4,.webm" onChange={(event) => { const file = event.target.files?.[0]; if (preview) URL.revokeObjectURL(preview); setPreview(file?.type.startsWith('image/') ? URL.createObjectURL(file) : null) }} /></label>
+            <label className="visibility-field"><span className="field-title"><ShieldCheck size={17} />公开范围</span><select name="visibility" defaultValue="private">{Object.entries(visibilityLabels).map(([value, label]) => <option value={value} key={value}>{label}</option>)}</select><small>私密作品不会自动出现在技能大厅。</small></label>
+            {preview && <img className="local-preview" src={preview} alt="待上传作品预览" />}
+            <label className="consent-card check-label wide-field"><input name="ai_processing_consent" type="checkbox" /><span><b>授权 AI 辅助观察</b><small>我明确同意将该作品副本发送给外部 AI 模型处理。AI 结果不会未经人工核验直接公开。</small></span></label>
+          </div>
+        </fieldset>
+      </div>
+      <footer className="evidence-form-footer"><p>保存后仍可修改说明和可见范围。</p><button className="primary-button" disabled={upload.isPending}>{upload.isPending ? '正在建立档案…' : '保存作品证据'}</button></footer>
+      {upload.isError && <p className="form-error evidence-upload-error" role="alert">{message(upload.error)}</p>}
     </form>
+    {!!portfolios.data?.length && <div className="portfolio-list-heading"><div><span className="evidence-kicker">SAVED EVIDENCE</span><h2>已保存的作品证据</h2></div><span>{portfolios.data.length} 份档案</span></div>}
     <div className="evidence-list">{portfolios.data?.map((portfolio) => <PortfolioCard portfolio={portfolio} skills={skills.data ?? []} key={portfolio.id} />)}</div>
     {!portfolios.isLoading && !portfolios.data?.length && <div className="empty-inline">尚未建立作品证据</div>}
   </section>
