@@ -23,7 +23,7 @@ export function ApplicantsPage() {
       <section><h3>学生授权作品</h3>{application.authorized_portfolios?.length ? <div className="authorized-grid">{application.authorized_portfolios.map((portfolio) => <article className="authorized-work" key={portfolio.id}>
         {portfolio.file_type.startsWith('image/') && <SecureImage src={portfolio.file_url} alt={portfolio.title} />}
         <h4>{portfolio.title}</h4><p>{portfolio.description}</p>
-        {portfolio.ai_assessment ? <div className="ai-summary"><span>{portfolio.result_label}</span><b>{portfolio.ai_assessment.total_score ?? '—'} / 100</b><small>{portfolio.verification_status ? verificationLabels[portfolio.verification_status] : '待人工复核'}</small></div> : <p className="boundary-note">该作品没有可展示的 AI 复评结果。</p>}
+        {portfolio.ai_assessment ? <div className="ai-summary"><span>{portfolio.result_label}</span><b>AI {portfolio.ai_assessment.total_score ?? '—'} / 100</b><small>人工状态：{portfolio.verification_status ? verificationLabels[portfolio.verification_status] : '待人工复核'}</small></div> : <p className="boundary-note">该作品没有可展示的 AI 复评结果。</p>}
       </article>)}</div> : <div className="empty-inline">学生没有为本项目授权作品</div>}</section>
       {application.status === 'pending' && <div className="record-actions"><button className="primary-button" onClick={() => action.mutate({ applicationId:application.id, operation:'accept' })}>录用</button><button onClick={() => action.mutate({ applicationId:application.id, operation:'reject' })}>拒绝</button></div>}
     </article>)}</div>
