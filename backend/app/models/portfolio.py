@@ -1,7 +1,7 @@
 from datetime import datetime, timezone
 from enum import Enum
 
-from sqlalchemy import DateTime, Enum as SqlEnum, ForeignKey, String, Text, UniqueConstraint
+from sqlalchemy import Boolean, DateTime, Enum as SqlEnum, ForeignKey, String, Text, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db.base import Base
@@ -63,4 +63,32 @@ class PortfolioEvidenceSkill(Base):
     )
     skill_id: Mapped[int] = mapped_column(
         ForeignKey("skills.id", ondelete="CASCADE"), index=True
+    )
+
+
+class PortfolioDraft(Base):
+    __tablename__ = "portfolio_drafts"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
+    skill_id: Mapped[int | None] = mapped_column(ForeignKey("skills.id"), index=True)
+    title: Mapped[str | None] = mapped_column(String(150))
+    description: Mapped[str | None] = mapped_column(Text)
+    evidence_type: Mapped[str] = mapped_column(String(50), default="visual_poster")
+    creation_context: Mapped[str | None] = mapped_column(Text)
+    personal_role: Mapped[str | None] = mapped_column(Text)
+    process_description: Mapped[str | None] = mapped_column(Text)
+    iteration_notes: Mapped[str | None] = mapped_column(Text)
+    visibility: Mapped[EvidenceVisibility] = mapped_column(
+        SqlEnum(EvidenceVisibility), default=EvidenceVisibility.private
+    )
+    related_skill_ids_json: Mapped[str] = mapped_column(Text, default="[]")
+    ai_processing_consent: Mapped[bool] = mapped_column(Boolean, default=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        default=lambda: datetime.now(timezone.utc),
+        onupdate=lambda: datetime.now(timezone.utc),
     )

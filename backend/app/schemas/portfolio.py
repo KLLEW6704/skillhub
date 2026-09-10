@@ -38,3 +38,26 @@ class PortfolioResponse(BaseModel):
     ai_processing_consent_at: datetime | None
     ai_supported: bool
     created_at: datetime
+
+
+class PortfolioDraftUpsert(BaseModel):
+    skill_id: int | None = None
+    title: str | None = Field(default=None, max_length=150)
+    description: str | None = Field(default=None, max_length=2000)
+    evidence_type: str = Field(default="visual_poster", min_length=1, max_length=50)
+    creation_context: str | None = Field(default=None, max_length=4000)
+    personal_role: str | None = Field(default=None, max_length=4000)
+    process_description: str | None = Field(default=None, max_length=6000)
+    iteration_notes: str | None = Field(default=None, max_length=6000)
+    visibility: EvidenceVisibility = EvidenceVisibility.private
+    related_skill_ids: list[int] = Field(default_factory=list, max_length=12)
+    ai_processing_consent: bool = False
+
+
+class PortfolioDraftResponse(PortfolioDraftUpsert):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    user_id: int
+    created_at: datetime
+    updated_at: datetime

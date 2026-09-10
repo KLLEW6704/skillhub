@@ -6,15 +6,24 @@ from sqlalchemy.orm import Session
 from app.api.deps import get_db, get_optional_user, require_roles
 from app.core.config import Settings
 from app.models.application import Application, ApplicationPortfolioGrant
-from app.models.portfolio import EvidenceVisibility, Portfolio, PortfolioEvidence
+from app.models.portfolio import EvidenceVisibility, Portfolio, PortfolioDraft, PortfolioEvidence
 from app.models.project import Project
 from app.models.verification import ReviewAssignment, SkillVerification
 from app.models.user import User, UserRole
-from app.schemas.portfolio import PortfolioResponse, PortfolioUpdate
+from app.schemas.portfolio import (
+    PortfolioDraftResponse,
+    PortfolioDraftUpsert,
+    PortfolioResponse,
+    PortfolioUpdate,
+)
 from app.services.portfolios import (
+    create_portfolio_draft,
     create_portfolio,
+    delete_portfolio_draft,
     delete_portfolio,
+    draft_to_response,
     portfolio_to_response,
+    update_portfolio_draft,
     update_portfolio,
 )
 from app.services.uploads import upload_path
@@ -34,6 +43,48 @@ def list_portfolios(
     return [portfolio_to_response(db, item) for item in portfolios]
 
 
+@router.get("/drafts", response_model=list[PortfolioDraftResponse])
+def list_portfolio_drafts(
+    current_user: User = Depends(student_only), db: Session = Depends(get_db)
+) -> list[dict]:
+    drafts = list(
+        db.scalars(
+            select(PortfolioDraft)
+            .where(PortfolioDraft.user_id == current_user.id)
+            .order_by(PortfolioDraft.updated_at.desc())
+        )
+    )
+    return [draft_to_response(item) for item in drafts]
+
+
+@router.post("/drafts", response_model=PortfolioDraftResponse, status_code=201)
+def save_portfolio_draft(
+    payload: PortfolioDraftUpsert,
+    current_user: User = Depends(student_only),
+    db: Session = Depends(get_db),
+) -> dict:
+    return create_portfolio_draft(db, current_user, payload)
+
+
+@router.patch("/drafts/{draft_id}", response_model=PortfolioDraftResponse)
+def patch_portfolio_draft(
+    draft_id: int,
+    payload: PortfolioDraftUpsert,
+    current_user: User = Depends(student_only),
+    db: Session = Depends(get_db),
+) -> dict:
+    return update_portfolio_draft(db, current_user, draft_id, payload)
+
+
+@router.delete("/drafts/{draft_id}", status_code=204)
+def remove_portfolio_draft(
+    draft_id: int,
+    current_user: User = Depends(student_only),
+    db: Session = Depends(get_db),
+) -> None:
+    delete_portfolio_draft(db, current_user, draft_id)
+
+
 @router.post("", response_model=PortfolioResponse, status_code=201)
 async def upload_portfolio(
     skill_id: int = Form(),
@@ -47,6 +98,7 @@ async def upload_portfolio(
     visibility: EvidenceVisibility = Form(default=EvidenceVisibility.private),
     related_skill_ids: list[int] = Form(default=[]),
     ai_processing_consent: bool = Form(default=False),
+    draft_id: int | None = Form(default=None),
     file: UploadFile = File(),
     current_user: User = Depends(student_only),
     db: Session = Depends(get_db),
@@ -69,6 +121,7 @@ async def upload_portfolio(
         visibility=visibility,
         related_skill_ids=related_skill_ids or None,
         ai_processing_consent=ai_processing_consent,
+        draft_id=draft_id,
     )
 
 

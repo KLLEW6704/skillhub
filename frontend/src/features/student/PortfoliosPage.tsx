@@ -1,10 +1,10 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { AlertCircle, Archive, ChevronDown, Compass, ExternalLink, Eye, FileUp, PencilLine, RefreshCw, SearchX, ShieldCheck, Trash2, UserRound, Workflow } from 'lucide-react'
-import { type FormEvent, useState } from 'react'
+import { AlertCircle, Archive, ChevronDown, Clock3, Compass, ExternalLink, Eye, FileText, FileUp, PencilLine, Plus, RefreshCw, Save, SearchX, ShieldCheck, Trash2, UserRound, Workflow, X } from 'lucide-react'
+import { type FormEvent, useEffect, useRef, useState } from 'react'
 import { SecureImage } from '../../components/SecureImage'
 import { apiBlob, apiRequest } from '../../lib/api'
 import { assessmentLabels, visibilityLabels } from '../../lib/status'
-import type { AssessmentRun, Portfolio, Skill } from '../../lib/types'
+import type { AssessmentRun, Portfolio, PortfolioDraft, Skill } from '../../lib/types'
 
 const evidenceTypes = [
   ['visual_poster', '视觉海报'], ['data_visualization', '数据可视化'], ['document', '文档'], ['other', '其他作品'],
@@ -111,6 +111,7 @@ function PortfolioAssessment({ portfolio }: { portfolio: Portfolio }) {
 function PortfolioCard({ portfolio, skills }: { portfolio: Portfolio; skills: Skill[] }) {
   const queryClient = useQueryClient()
   const [editing, setEditing] = useState(false)
+  const [expanded, setExpanded] = useState(false)
   const update = useMutation({
     mutationFn: (payload: unknown) => apiRequest<Portfolio>(`/api/v1/portfolios/${portfolio.id}`, { method: 'PATCH', body: JSON.stringify(payload) }),
     onSuccess: () => { setEditing(false); queryClient.invalidateQueries({ queryKey: ['portfolios'] }) },
@@ -133,10 +134,16 @@ function PortfolioCard({ portfolio, skills }: { portfolio: Portfolio; skills: Sk
     })
   }
 
-  return <article className="evidence-card">
-    <div className="evidence-media">{portfolio.file_type.startsWith('image/') ? <SecureImage src={portfolio.file_url} alt={portfolio.title} /> : <button className="document-preview" onClick={() => openEvidence(portfolio)}>打开作品文件</button>}</div>
-    <div className="evidence-body">
-      <div className="record-heading"><div><span className="evidence-kicker">{evidenceTypeLabels[portfolio.evidence_type] ?? portfolio.evidence_type}</span><h2>{portfolio.title}</h2></div><span className={`status-chip ${portfolio.visibility}`}>{visibilityLabels[portfolio.visibility]}</span></div>
+  return <article className={`evidence-card evidence-summary-card${expanded ? ' is-expanded' : ''}`}>
+    <button type="button" className="evidence-card-summary" aria-expanded={expanded} aria-label={`${expanded ? '收起' : '查看'}作品证据：${portfolio.title}`} onClick={() => { setExpanded(!expanded); if (expanded) setEditing(false) }}>
+      <span className="evidence-summary-thumb">{portfolio.file_type.startsWith('image/') ? <SecureImage src={portfolio.file_url} alt="" /> : <FileText size={27} />}</span>
+      <span className="evidence-summary-copy"><span className="evidence-kicker">{evidenceTypeLabels[portfolio.evidence_type] ?? portfolio.evidence_type}</span><strong>{portfolio.title}</strong><small>{portfolio.description || '尚未填写作品说明'}</small></span>
+      <span className="evidence-summary-meta"><span className={`status-chip ${portfolio.visibility}`}>{visibilityLabels[portfolio.visibility]}</span><small>{new Date(portfolio.created_at).toLocaleDateString('zh-CN')}</small></span>
+      <ChevronDown className="evidence-summary-chevron" size={20} />
+    </button>
+    {expanded && <div className="evidence-card-details">
+      <div className="evidence-media">{portfolio.file_type.startsWith('image/') ? <SecureImage src={portfolio.file_url} alt={portfolio.title} /> : <button className="document-preview" onClick={() => openEvidence(portfolio)}>打开作品文件</button>}</div>
+      <div className="evidence-body">
       <p className="evidence-description">{portfolio.description || '尚未填写作品说明'}</p>
       <dl className="evidence-story-grid">
         <div><dt><span><Compass size={18} /></span>创作背景</dt><dd>{portfolio.creation_context || '待补充'}</dd></div>
@@ -166,67 +173,150 @@ function PortfolioCard({ portfolio, skills }: { portfolio: Portfolio; skills: Sk
         {update.isError && <p className="form-error">{message(update.error)}</p>}
       </form>}
       <PortfolioAssessment portfolio={portfolio} />
-    </div>
+      </div>
+    </div>}
   </article>
+}
+
+function nullableField(data: FormData, name: string) {
+  const value = String(data.get(name) ?? '').trim()
+  return value || null
+}
+
+function draftPayload(form: HTMLFormElement) {
+  const data = new FormData(form)
+  const skillId = String(data.get('skill_id') ?? '')
+  return {
+    skill_id: skillId ? Number(skillId) : null,
+    title: nullableField(data, 'title'),
+    description: nullableField(data, 'description'),
+    evidence_type: String(data.get('evidence_type') || 'visual_poster'),
+    creation_context: nullableField(data, 'creation_context'),
+    personal_role: nullableField(data, 'personal_role'),
+    process_description: nullableField(data, 'process_description'),
+    iteration_notes: nullableField(data, 'iteration_notes'),
+    visibility: String(data.get('visibility') || 'private'),
+    related_skill_ids: data.getAll('related_skill_ids').map(Number),
+    ai_processing_consent: data.get('ai_processing_consent') === 'on',
+  }
 }
 
 export function PortfoliosPage() {
   const queryClient = useQueryClient()
   const [preview, setPreview] = useState<string | null>(null)
+  const [composerOpen, setComposerOpen] = useState(false)
+  const [activeDraft, setActiveDraft] = useState<PortfolioDraft | null>(null)
+  const dialogRef = useRef<HTMLDialogElement>(null)
   const portfolios = useQuery({ queryKey: ['portfolios'], queryFn: () => apiRequest<Portfolio[]>('/api/v1/portfolios') })
+  const drafts = useQuery({ queryKey: ['portfolio-drafts'], queryFn: () => apiRequest<PortfolioDraft[]>('/api/v1/portfolios/drafts') })
   const skills = useQuery({ queryKey: ['my-skills'], queryFn: () => apiRequest<Skill[]>('/api/v1/skills') })
   const upload = useMutation({
     mutationFn: (body: FormData) => apiRequest<Portfolio>('/api/v1/portfolios', { method: 'POST', body }),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['portfolios'] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['portfolios'] })
+      queryClient.invalidateQueries({ queryKey: ['portfolio-drafts'] })
+    },
   })
+  const saveDraft = useMutation({
+    mutationFn: ({ id, payload }: { id?: number; payload: ReturnType<typeof draftPayload> }) =>
+      apiRequest<PortfolioDraft>(id ? `/api/v1/portfolios/drafts/${id}` : '/api/v1/portfolios/drafts', { method: id ? 'PATCH' : 'POST', body: JSON.stringify(payload) }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['portfolio-drafts'] }),
+  })
+  const removeDraft = useMutation({
+    mutationFn: (id: number) => apiRequest<void>(`/api/v1/portfolios/drafts/${id}`, { method: 'DELETE' }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['portfolio-drafts'] }),
+  })
+
+  useEffect(() => {
+    const dialog = dialogRef.current
+    if (!dialog) return
+    if (composerOpen && !dialog.open) {
+      if (typeof dialog.showModal === 'function') dialog.showModal()
+      else dialog.setAttribute('open', '')
+    } else if (!composerOpen && dialog.open) {
+      if (typeof dialog.close === 'function') dialog.close()
+      else dialog.removeAttribute('open')
+    }
+  }, [composerOpen])
+
+  useEffect(() => () => { if (preview) URL.revokeObjectURL(preview) }, [preview])
+
+  function openComposer(draft: PortfolioDraft | null) {
+    upload.reset()
+    saveDraft.reset()
+    setActiveDraft(draft)
+    setPreview(null)
+    setComposerOpen(true)
+  }
+
+  function closeComposer() {
+    setComposerOpen(false)
+    setPreview(null)
+  }
 
   function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     const form = event.currentTarget
-    upload.mutate(new FormData(form), { onSuccess: () => { form.reset(); if (preview) URL.revokeObjectURL(preview); setPreview(null) } })
+    const body = new FormData(form)
+    if (activeDraft) body.set('draft_id', String(activeDraft.id))
+    upload.mutate(body, { onSuccess: () => { form.reset(); closeComposer() } })
+  }
+
+  function storeDraft(form: HTMLFormElement) {
+    saveDraft.mutate({ id: activeDraft?.id, payload: draftPayload(form) }, { onSuccess: closeComposer })
   }
 
   return <section className="workspace-page evidence-workspace">
     <p className="eyebrow">PORTFOLIO EVIDENCE</p><h1>作品证据</h1>
     <p className="page-intro">先记录背景、职责、过程与迭代，再决定是否授权 AI 或项目方查看。私密作品不会自动公开。</p>
     <p className="boundary-note">AI 只生成可追溯的辅助观察与初评分，不是学校官方认证，也不会自动授予技能称号或录用结果；人工复核和真实项目交付会单独记录。</p>
-    <form className="evidence-upload-form evidence-archive-form" onSubmit={submit}>
-      <header className="evidence-form-header"><span className="evidence-form-mark"><Archive size={23} /></span><div><span className="evidence-kicker">NEW EVIDENCE RECORD</span><h2>建立证据档案</h2><p>用作品、过程和职责说明，留下可以被核查的实践记录。</p></div><span className="evidence-form-number">01</span></header>
-      <div className="evidence-form-body">
-        <fieldset className="evidence-form-section">
-          <legend><span>01</span><div><b>作品基本信息</b><small>说明这是什么作品，以及它主要对应哪项技能。</small></div></legend>
-          <div className="evidence-form-grid">
-            <label>主要技能<select name="skill_id" required>{skills.data?.map((skill) => <option value={skill.id} key={skill.id}>{skill.name}</option>)}</select></label>
-            <label>作品类型<select name="evidence_type" defaultValue="visual_poster">{evidenceTypes.map(([value, label]) => <option value={value} key={value}>{label}</option>)}</select></label>
-            <label>作品标题<input name="title" required placeholder="例如：迎新季视觉海报" /></label>
-            <label>关联技能<select name="related_skill_ids" multiple>{skills.data?.map((skill) => <option value={skill.id} key={skill.id}>{skill.name}</option>)}</select><small>可按住 Ctrl 选择多项</small></label>
-            <label className="wide-field">作品说明<textarea name="description" placeholder="简要说明作品目标、内容与最终成果" /></label>
-          </div>
-        </fieldset>
-        <fieldset className="evidence-form-section story-form-section">
-          <legend><span>02</span><div><b>证据叙事</b><small>四个维度会作为 AI 追问与人工复核的重要上下文。</small></div></legend>
-          <div className="story-input-grid">
-            <label><span className="field-title"><Compass size={17} />创作背景</span><textarea name="creation_context" required placeholder="为什么要做这项作品？面向什么场景？" /></label>
-            <label><span className="field-title"><UserRound size={17} />本人职责</span><textarea name="personal_role" required placeholder="你具体负责了哪些部分？" /></label>
-            <label><span className="field-title"><Workflow size={17} />制作过程</span><textarea name="process_description" required placeholder="从准备到完成经历了哪些步骤？" /></label>
-            <label><span className="field-title"><RefreshCw size={17} />迭代说明</span><textarea name="iteration_notes" required placeholder="根据什么反馈做过哪些修改？" /></label>
-          </div>
-        </fieldset>
-        <fieldset className="evidence-form-section">
-          <legend><span>03</span><div><b>文件与权限</b><small>选择原始成果，并决定谁能够看到这份证据。</small></div></legend>
-          <div className="asset-permission-grid">
-            <label className="file-upload-card"><span className="file-upload-icon"><FileUp size={22} /></span><b>选择作品文件</b><small>图片支持 AI 观察；PDF、文档和视频仅保存为证据。</small><input name="file" type="file" required accept=".png,.jpg,.jpeg,.webp,.gif,.pdf,.doc,.docx,.ppt,.pptx,.mp4,.webm" onChange={(event) => { const file = event.target.files?.[0]; if (preview) URL.revokeObjectURL(preview); setPreview(file?.type.startsWith('image/') ? URL.createObjectURL(file) : null) }} /></label>
-            <label className="visibility-field"><span className="field-title"><ShieldCheck size={17} />公开范围</span><select name="visibility" defaultValue="private">{Object.entries(visibilityLabels).map(([value, label]) => <option value={value} key={value}>{label}</option>)}</select><small>私密作品不会自动出现在技能大厅。</small></label>
-            {preview && <img className="local-preview" src={preview} alt="待上传作品预览" />}
-            <label className="consent-card check-label wide-field"><input name="ai_processing_consent" type="checkbox" /><span><b>授权 AI 辅助观察</b><small>我明确同意将该作品副本发送给外部 AI 模型处理。AI 结果不会未经人工核验直接公开。</small></span></label>
-          </div>
-        </fieldset>
-      </div>
-      <footer className="evidence-form-footer"><p>保存后仍可修改说明和可见范围。</p><button className="primary-button" disabled={upload.isPending}>{upload.isPending ? '正在建立档案…' : '保存作品证据'}</button></footer>
-      {upload.isError && <p className="form-error evidence-upload-error" role="alert">{message(upload.error)}</p>}
-    </form>
+    {!!drafts.data?.length && <section className="portfolio-drafts" aria-labelledby="draft-heading">
+      <div className="portfolio-list-heading compact-heading"><div><span className="evidence-kicker">WORK IN PROGRESS</span><h2 id="draft-heading">未完成草稿</h2></div><span>{drafts.data.length} 份待继续</span></div>
+      <div className="portfolio-draft-grid">{drafts.data.map((draft) => <article className="portfolio-draft-card" key={draft.id}>
+        <span className="draft-icon"><Archive size={20} /></span><div><span>{evidenceTypeLabels[draft.evidence_type] ?? '作品证据'}</span><h3>{draft.title || '未命名证据草稿'}</h3><small><Clock3 size={13} />更新于 {new Date(draft.updated_at).toLocaleDateString('zh-CN')}</small></div>
+        <div className="draft-actions"><button type="button" onClick={() => openComposer(draft)}>继续填写</button><button type="button" aria-label={`删除草稿：${draft.title || '未命名证据草稿'}`} onClick={() => confirm('确认删除这份草稿？') && removeDraft.mutate(draft.id)}><Trash2 size={15} /></button></div>
+      </article>)}</div>
+    </section>}
     {!!portfolios.data?.length && <div className="portfolio-list-heading"><div><span className="evidence-kicker">SAVED EVIDENCE</span><h2>已保存的作品证据</h2></div><span>{portfolios.data.length} 份档案</span></div>}
     <div className="evidence-list">{portfolios.data?.map((portfolio) => <PortfolioCard portfolio={portfolio} skills={skills.data ?? []} key={portfolio.id} />)}</div>
     {!portfolios.isLoading && !portfolios.data?.length && <div className="empty-inline">尚未建立作品证据</div>}
+    <button type="button" className="evidence-fab" aria-label="建立证据档案" onClick={() => openComposer(null)}><Plus size={24} /><span>建立证据</span></button>
+    <dialog ref={dialogRef} className="evidence-compose-dialog" onClose={() => { setComposerOpen(false); setPreview(null) }} aria-labelledby="evidence-compose-title">
+      <form key={activeDraft?.id ?? 'new'} className="evidence-upload-form evidence-archive-form" onSubmit={submit}>
+        <header className="evidence-form-header"><span className="evidence-form-mark"><Archive size={23} /></span><div><span className="evidence-kicker">{activeDraft ? 'CONTINUE DRAFT' : 'NEW EVIDENCE RECORD'}</span><h2 id="evidence-compose-title">{activeDraft ? '继续填写证据草稿' : '建立证据档案'}</h2><p>用作品、过程和职责说明，留下可以被核查的实践记录。</p></div><button type="button" className="evidence-dialog-close" aria-label="关闭建立证据档案" onClick={closeComposer}><X size={22} /></button></header>
+        <div className="evidence-form-body">
+          <fieldset className="evidence-form-section">
+            <legend><span>01</span><div><b>作品基本信息</b><small>草稿阶段可以只填写一部分，正式保存前再补完整。</small></div></legend>
+            <div className="evidence-form-grid">
+              <label>主要技能<select name="skill_id" required defaultValue={activeDraft?.skill_id ?? ''}><option value="">请选择主要技能</option>{skills.data?.map((skill) => <option value={skill.id} key={skill.id}>{skill.name}</option>)}</select></label>
+              <label>作品类型<select name="evidence_type" defaultValue={activeDraft?.evidence_type ?? 'visual_poster'}>{evidenceTypes.map(([value, label]) => <option value={value} key={value}>{label}</option>)}</select></label>
+              <label>作品标题<input name="title" required defaultValue={activeDraft?.title ?? ''} placeholder="例如：迎新季视觉海报" /></label>
+              <label>关联技能<select name="related_skill_ids" multiple defaultValue={activeDraft?.related_skill_ids.map(String)}>{skills.data?.map((skill) => <option value={skill.id} key={skill.id}>{skill.name}</option>)}</select><small>可按住 Ctrl 选择多项</small></label>
+              <label className="wide-field">作品说明<textarea name="description" defaultValue={activeDraft?.description ?? ''} placeholder="简要说明作品目标、内容与最终成果" /></label>
+            </div>
+          </fieldset>
+          <fieldset className="evidence-form-section story-form-section">
+            <legend><span>02</span><div><b>证据叙事</b><small>四个维度会作为 AI 追问与人工复核的重要上下文。</small></div></legend>
+            <div className="story-input-grid">
+              <label><span className="field-title"><Compass size={17} />创作背景</span><textarea name="creation_context" required defaultValue={activeDraft?.creation_context ?? ''} placeholder="为什么要做这项作品？面向什么场景？" /></label>
+              <label><span className="field-title"><UserRound size={17} />本人职责</span><textarea name="personal_role" required defaultValue={activeDraft?.personal_role ?? ''} placeholder="你具体负责了哪些部分？" /></label>
+              <label><span className="field-title"><Workflow size={17} />制作过程</span><textarea name="process_description" required defaultValue={activeDraft?.process_description ?? ''} placeholder="从准备到完成经历了哪些步骤？" /></label>
+              <label><span className="field-title"><RefreshCw size={17} />迭代说明</span><textarea name="iteration_notes" required defaultValue={activeDraft?.iteration_notes ?? ''} placeholder="根据什么反馈做过哪些修改？" /></label>
+            </div>
+          </fieldset>
+          <fieldset className="evidence-form-section">
+            <legend><span>03</span><div><b>文件与权限</b><small>选择原始成果，并决定谁能够看到这份证据。</small></div></legend>
+            <div className="asset-permission-grid">
+              <label className="file-upload-card"><span className="file-upload-icon"><FileUp size={22} /></span><b>选择作品文件</b><small>{activeDraft ? '为保护文件安全，草稿不会保留已选文件；正式保存前请重新选择。' : '图片支持 AI 观察；PDF、文档和视频仅保存为证据。'}</small><input name="file" type="file" required accept=".png,.jpg,.jpeg,.webp,.gif,.pdf,.doc,.docx,.ppt,.pptx,.mp4,.webm" onChange={(event) => { const file = event.target.files?.[0]; setPreview(file?.type.startsWith('image/') ? URL.createObjectURL(file) : null) }} /></label>
+              <label className="visibility-field"><span className="field-title"><ShieldCheck size={17} />公开范围</span><select name="visibility" defaultValue={activeDraft?.visibility ?? 'private'}>{Object.entries(visibilityLabels).map(([value, label]) => <option value={value} key={value}>{label}</option>)}</select><small>私密作品不会自动出现在技能大厅。</small></label>
+              {preview && <img className="local-preview" src={preview} alt="待上传作品预览" />}
+              <label className="consent-card check-label wide-field"><input name="ai_processing_consent" type="checkbox" defaultChecked={activeDraft?.ai_processing_consent ?? false} /><span><b>授权 AI 辅助观察</b><small>我明确同意将该作品副本发送给外部 AI 模型处理。AI 结果不会未经人工核验直接公开。</small></span></label>
+            </div>
+          </fieldset>
+        </div>
+        <footer className="evidence-form-footer"><p>未填完可以先存草稿，草稿不会进入公开档案或 AI 初评。</p><div><button type="button" className="secondary-button draft-save-button" disabled={saveDraft.isPending} onClick={(event) => { const form = event.currentTarget.form; if (form) storeDraft(form) }}><Save size={16} />{saveDraft.isPending ? '存档中…' : '保存草稿'}</button><button className="primary-button" disabled={upload.isPending}>{upload.isPending ? '正在建立档案…' : '保存作品证据'}</button></div></footer>
+        {(upload.isError || saveDraft.isError) && <p className="form-error evidence-upload-error" role="alert">{message(upload.error || saveDraft.error)}</p>}
+      </form>
+    </dialog>
   </section>
 }

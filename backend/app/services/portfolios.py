@@ -1,4 +1,5 @@
 from datetime import datetime, timezone
+import json
 from pathlib import Path
 
 from fastapi import HTTPException, UploadFile
@@ -8,6 +9,7 @@ from sqlalchemy.orm import Session
 from app.models.portfolio import (
     EvidenceVisibility,
     Portfolio,
+    PortfolioDraft,
     PortfolioEvidence,
     PortfolioEvidenceSkill,
 )
@@ -17,6 +19,112 @@ from app.models.skill import Skill
 from app.models.user import User
 from app.services.uploads import IMAGE_FORMATS, remove_upload, save_upload
 from app.services.growth import recalculate_skill
+
+
+def _draft_skill_ids(
+    db: Session, user: User, skill_id: int | None, related_skill_ids: list[int]
+) -> list[int]:
+    unique_ids = list(dict.fromkeys(related_skill_ids))
+    requested_ids = set(unique_ids)
+    if skill_id is not None:
+        requested_ids.add(skill_id)
+    if requested_ids:
+        owned_ids = set(
+            db.scalars(
+                select(Skill.id).where(
+                    Skill.user_id == user.id, Skill.id.in_(requested_ids)
+                )
+            )
+        )
+        if owned_ids != requested_ids:
+            raise HTTPException(status_code=404, detail="关联技能不存在")
+    return unique_ids
+
+
+def draft_to_response(draft: PortfolioDraft) -> dict:
+    try:
+        related_skill_ids = json.loads(draft.related_skill_ids_json)
+    except (TypeError, ValueError):
+        related_skill_ids = []
+    return {
+        "id": draft.id,
+        "user_id": draft.user_id,
+        "skill_id": draft.skill_id,
+        "title": draft.title,
+        "description": draft.description,
+        "evidence_type": draft.evidence_type,
+        "creation_context": draft.creation_context,
+        "personal_role": draft.personal_role,
+        "process_description": draft.process_description,
+        "iteration_notes": draft.iteration_notes,
+        "visibility": draft.visibility,
+        "related_skill_ids": related_skill_ids,
+        "ai_processing_consent": draft.ai_processing_consent,
+        "created_at": draft.created_at,
+        "updated_at": draft.updated_at,
+    }
+
+
+def create_portfolio_draft(db: Session, user: User, payload) -> dict:
+    values = payload.model_dump()
+    related_skill_ids = _draft_skill_ids(
+        db, user, values.get("skill_id"), values.pop("related_skill_ids")
+    )
+    draft = PortfolioDraft(
+        user_id=user.id,
+        related_skill_ids_json=json.dumps(related_skill_ids),
+        **values,
+    )
+    db.add(draft)
+    db.commit()
+    db.refresh(draft)
+    return draft_to_response(draft)
+
+
+def update_portfolio_draft(
+    db: Session, user: User, draft_id: int, payload
+) -> dict:
+    draft = db.scalar(
+        select(PortfolioDraft).where(
+            PortfolioDraft.id == draft_id, PortfolioDraft.user_id == user.id
+        )
+    )
+    if draft is None:
+        raise HTTPException(status_code=404, detail="草稿不存在")
+    values = payload.model_dump(exclude_unset=True)
+    try:
+        current_related_skill_ids = json.loads(draft.related_skill_ids_json)
+    except (TypeError, ValueError):
+        current_related_skill_ids = []
+    supplied_related_skill_ids = values.pop("related_skill_ids", None)
+    related_skill_ids = _draft_skill_ids(
+        db,
+        user,
+        values.get("skill_id", draft.skill_id),
+        supplied_related_skill_ids
+        if supplied_related_skill_ids is not None
+        else current_related_skill_ids,
+    )
+    for field, value in values.items():
+        setattr(draft, field, value)
+    if supplied_related_skill_ids is not None:
+        draft.related_skill_ids_json = json.dumps(related_skill_ids)
+    draft.updated_at = datetime.now(timezone.utc)
+    db.commit()
+    db.refresh(draft)
+    return draft_to_response(draft)
+
+
+def delete_portfolio_draft(db: Session, user: User, draft_id: int) -> None:
+    draft = db.scalar(
+        select(PortfolioDraft).where(
+            PortfolioDraft.id == draft_id, PortfolioDraft.user_id == user.id
+        )
+    )
+    if draft is None:
+        raise HTTPException(status_code=404, detail="草稿不存在")
+    db.delete(draft)
+    db.commit()
 
 
 def _evidence_for(db: Session, portfolio_id: int) -> PortfolioEvidence | None:
@@ -107,12 +215,22 @@ async def create_portfolio(
     visibility: EvidenceVisibility = EvidenceVisibility.private,
     related_skill_ids: list[int] | None = None,
     ai_processing_consent: bool = False,
+    draft_id: int | None = None,
 ) -> dict:
     skill = db.scalar(
         select(Skill).where(Skill.id == skill_id, Skill.user_id == user.id)
     )
     if skill is None:
         raise HTTPException(status_code=404, detail="技能不存在")
+    draft = None
+    if draft_id is not None:
+        draft = db.scalar(
+            select(PortfolioDraft).where(
+                PortfolioDraft.id == draft_id, PortfolioDraft.user_id == user.id
+            )
+        )
+        if draft is None:
+            raise HTTPException(status_code=404, detail="草稿不存在")
     stored_name = await save_upload(file, upload_dir, max_bytes)
     portfolio = Portfolio(
         user_id=user.id,
@@ -142,6 +260,8 @@ async def create_portfolio(
         _replace_related_skills(
             db, evidence, user, related_skill_ids or [skill.id]
         )
+        if draft is not None:
+            db.delete(draft)
         recalculate_skill(db, skill.id)
         db.commit()
         db.refresh(portfolio)

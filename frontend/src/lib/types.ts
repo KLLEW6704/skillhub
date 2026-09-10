@@ -17,6 +17,13 @@ export interface Portfolio {
   ai_processing_consent_at:string|null; ai_supported:boolean; created_at:string
 }
 
+export interface PortfolioDraft {
+  id:number; user_id:number; skill_id:number|null; title:string|null; description:string|null
+  evidence_type:string; creation_context:string|null; personal_role:string|null; process_description:string|null
+  iteration_notes:string|null; visibility:EvidenceVisibility; related_skill_ids:number[]
+  ai_processing_consent:boolean; created_at:string; updated_at:string
+}
+
 export interface StudentProfile { user_id:number; username:string; display_name:string; avatar_url:string|null; bio:string|null; school:string|null; college:string|null; major:string|null; grade:string|null; skills:Skill[]; portfolios:Portfolio[] }
 export interface Review { id:number; project_id:number; student_id:number; skill_score:number; communication_score:number; delivery_score:number; time_management_score:number; comment:string|null; created_at:string }
 export interface EvidenceReference { source:'image_region'|'work_description'|'defense_answer'; reference:string; reason?:string }
