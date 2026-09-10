@@ -10,3 +10,53 @@
 @media(max-width:600px){.workspace-main{padding:28px 16px}.workspace-page h1{font-size:38px;margin-bottom:25px}.evidence-upload-form,.application-form,.review-decision-form,.evidence-edit-form,.defense-form,.observation-grid{grid-template-columns:1fr;padding:18px}.evidence-upload-form>* ,.application-form>* ,.review-decision-form>* ,.evidence-edit-form>* ,.defense-form>*{grid-column:1}.record-heading,.applicant-card>header,.review-assignment>header,.assessment-panel-heading,.report-heading{flex-direction:column}.record-actions{width:100%}.record-actions button,.record-actions select{flex:1}.audit-row{grid-template-columns:1fr}.rubric-input{grid-template-columns:1fr}.credential-sheet{padding:22px 18px}.primary-button,.secondary-button,.danger-button{min-height:44px}}
 .status-chip.verified,.status-chip.succeeded{border-color:#64826d;color:#355f42;background:#eef6ef}.status-chip.failed{border-color:#a66c66;color:#8b3932;background:#fbefed}.status-chip.queued,.status-chip.running{border-color:#b18a4b;color:#79581f;background:#fff7e7}.profile-boundary{display:block;padding:18px 20px;border-left:3px solid var(--amber);background:rgba(196,135,43,.08);line-height:1.8}.audit-row{grid-template-columns:1.2fr .9fr 1fr}.manage-actions input{min-height:42px;min-width:220px;padding:9px 11px;border:1px solid var(--line);background:#fff}@media(max-width:900px){.audit-row{grid-template-columns:1fr 1fr}}@media(max-width:600px){.audit-row{grid-template-columns:1fr}.manage-actions input{min-width:100%;width:100%}}
 .ai-summary{display:grid;grid-template-columns:1fr auto;gap:8px 16px;align-items:center}.ai-summary small{grid-column:1/-1}
+
+/* AI assessment is presented as a readable review summary, not raw model output. */
+.assessment-panel{margin:28px -24px -24px;padding:26px 24px 24px;border-top:1px solid var(--line);background:rgba(23,60,50,.025)}
+.assessment-panel-heading{align-items:flex-start}
+.assessment-title-group{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.assessment-title-group strong{display:inline-flex;align-items:center;min-height:30px;padding:5px 11px;border:1px solid #86a091;border-radius:999px;background:#eef6ef;color:#355f42;font-size:13px;font-weight:600}
+.observation-grid{grid-template-columns:minmax(0,1.25fr) minmax(280px,.75fr);gap:18px;margin:22px 0;padding:0;align-items:start}
+.observation-card{overflow:hidden;border:1px solid var(--line);background:#fff}
+.observation-card.facts-card{border-top:3px solid #4f766a}
+.observation-card.gaps-card{border-top:3px solid var(--amber)}
+.observation-card>header{display:flex;gap:14px;padding:20px 20px 17px;background:rgba(23,60,50,.035)}
+.observation-card>header>div{min-width:0}
+.observation-card>header span:not(.assessment-icon){display:block;margin-bottom:4px;color:var(--amber);font-size:12px;font-weight:700;letter-spacing:.08em}
+.observation-card h4{margin:0;font:700 19px/1.45 "Noto Serif SC",serif}
+.observation-card header p{margin:7px 0 0;color:#64766f;font-size:13px;line-height:1.65}
+.assessment-icon{display:grid;place-items:center;flex:0 0 38px;width:38px;height:38px;border:1px solid var(--line);border-radius:50%;background:var(--paper-light);color:var(--ink)}
+.fact-list,.gap-list{list-style:none;margin:0;padding:0}
+.fact-list>li{display:grid;grid-template-columns:34px minmax(0,1fr);gap:13px;padding:18px 20px;border-top:1px solid rgba(23,60,50,.12)}
+.fact-index{padding-top:2px;color:#7b8b85;font:600 12px/1.6 monospace}
+.fact-list p{margin:0;color:var(--ink);font-size:15px;line-height:1.75}
+.fact-list details{margin-top:9px}
+.fact-list summary{display:inline-flex;align-items:center;gap:5px;color:#73827d;font-size:12px;cursor:pointer;list-style:none}
+.fact-list summary::-webkit-details-marker{display:none}
+.fact-list details[open] summary svg{transform:rotate(180deg)}
+.fact-list summary svg{transition:transform .18s ease}
+.fact-list details small{display:block;margin-top:8px;padding:9px 11px;border-left:2px solid var(--line);background:var(--paper-light);color:#667771;font:12px/1.55 monospace;overflow-wrap:anywhere}
+.gap-list{padding:4px 20px 14px}
+.gap-list>li{display:grid;grid-template-columns:20px minmax(0,1fr);gap:10px;padding:14px 0;border-top:1px solid rgba(23,60,50,.12);font-size:14px;line-height:1.65}
+.gap-list>li:first-child{border-top:0}
+.gap-list svg{margin-top:3px;color:var(--amber)}
+.assessment-report{margin-top:22px;padding:0;border:1px solid var(--line);background:#fff}
+.report-heading{padding:22px 24px;border-bottom:1px solid var(--line);background:rgba(23,60,50,.035)}
+.report-heading h4{margin:4px 0 0;font:700 21px "Noto Serif SC",serif}
+.assessment-score{display:flex;align-items:baseline;gap:5px;color:var(--amber)}
+.assessment-score b{font:700 38px/1 "Noto Serif SC",serif}
+.assessment-score span{font-size:13px}
+.assessment-report>.boundary-note{margin:20px 24px 0}
+.rubric-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;padding:20px 24px 24px}
+.rubric-card{padding:17px;border:1px solid rgba(23,60,50,.16);background:var(--paper-light)}
+.rubric-card>header{display:flex;align-items:center;justify-content:space-between;gap:15px}
+.rubric-card>header strong{font:700 16px "Noto Serif SC",serif}
+.rubric-card>header span{color:var(--amber);font-size:13px;font-weight:700}
+.rubric-meter{height:4px;margin:13px 0 15px;background:rgba(23,60,50,.12)}
+.rubric-meter i{display:block;height:100%;background:var(--amber)}
+.rubric-card ul{margin:0;padding:0;list-style:none}
+.rubric-card li+li{margin-top:12px;padding-top:12px;border-top:1px solid rgba(23,60,50,.1)}
+.rubric-card p{margin:0;font-size:14px;line-height:1.65}
+.rubric-card small{display:block;margin-top:5px;color:#73827d;font-size:12px;line-height:1.5;overflow-wrap:anywhere}
+@media(max-width:900px){.observation-grid,.rubric-grid{grid-template-columns:1fr}}
+@media(max-width:600px){.assessment-panel{margin:24px -16px -24px;padding:22px 16px 20px}.assessment-panel-heading{gap:14px}.assessment-title-group{align-items:flex-start;flex-direction:column}.observation-grid{padding:0}.observation-card>header{padding:18px 16px}.fact-list>li{padding:16px}.gap-list{padding-left:16px;padding-right:16px}.report-heading{padding:19px 18px;align-items:flex-start}.assessment-report>.boundary-note{margin:16px 18px 0}.rubric-grid{padding:16px 18px 18px}}

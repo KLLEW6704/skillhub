@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { AlertCircle, ChevronDown, Eye, SearchX } from 'lucide-react'
 import { type FormEvent, useState } from 'react'
 import { SecureImage } from '../../components/SecureImage'
 import { apiBlob, apiRequest } from '../../lib/api'
@@ -23,12 +24,19 @@ function RubricReport({ run }: { run: AssessmentRun }) {
   const result = run.structured_result
   if (!result?.criteria) return null
   return <section className="assessment-report" aria-label="AI 辅助初评报告">
-    <div className="report-heading"><span>AI 辅助初评、待人工复核</span><b>{result.total_score ?? '—'} / 100</b></div>
+    <div className="report-heading">
+      <div><span className="evidence-kicker">AI 量表摘要</span><h4>辅助初评结果</h4></div>
+      <div className="assessment-score"><b>{result.total_score ?? '—'}</b><span>/ 100</span></div>
+    </div>
     <p className="boundary-note">该结果只用于辅助观察，不是学校官方认证，也不会自动改变权限、项目状态或成长活跃度。</p>
-    {result.criteria.map((item) => <article className="rubric-row" key={item.criterion}>
-      <div><strong>{item.criterion}</strong><span>{item.score} / 4</span></div>
-      {item.evidence.map((evidence, index) => <p key={`${evidence.reference}-${index}`}>{evidence.reference}：{evidence.reason}</p>)}
-    </article>)}
+    <div className="rubric-grid">{result.criteria.map((item) => <article className="rubric-card" key={item.criterion}>
+      <header><strong>{item.criterion}</strong><span>{item.score} / 4</span></header>
+      <div className="rubric-meter" aria-label={`${item.criterion} ${item.score} 分，共 4 分`}><i style={{ width: `${Math.max(0, Math.min(item.score, 4)) * 25}%` }} /></div>
+      <ul>{item.evidence.map((evidence, index) => <li key={`${evidence.reference}-${index}`}>
+        <p>{evidence.reason || '该项判断来自作品与答辩中的可核查信息。'}</p>
+        <small>{evidence.reference}</small>
+      </li>)}</ul>
+    </article>)}</div>
   </section>
 }
 
@@ -69,7 +77,7 @@ function PortfolioAssessment({ portfolio }: { portfolio: Portfolio }) {
 
   return <div className="assessment-panel">
     <div className="assessment-panel-heading">
-      <div><span className="evidence-kicker">AI 动态答辩</span><strong>{latest ? assessmentLabels[latest.status] : '尚未评估'}</strong></div>
+      <div className="assessment-title-group"><span className="evidence-kicker">AI 动态答辩</span><strong>{latest ? assessmentLabels[latest.status] : '尚未评估'}</strong></div>
       {!latest && <button className="secondary-button" onClick={() => create.mutate()} disabled={!portfolio.ai_supported || !portfolio.ai_processing_consent_at || create.isPending}>发起 AI 观察</button>}
       {latest?.status === 'failed' && <button className="secondary-button" onClick={() => retry.mutate(latest)} disabled={retry.isPending}>重试失败运行</button>}
     </div>
@@ -77,8 +85,17 @@ function PortfolioAssessment({ portfolio }: { portfolio: Portfolio }) {
     {portfolio.ai_supported && !portfolio.ai_processing_consent_at && <p className="boundary-note">需要先在作品设置中明确同意外部 AI 处理，才能发起评估。</p>}
     {latest?.error && <p className="form-error" role="alert">真实错误：{latest.error}</p>}
     {observation?.structured_result?.observable_facts && <div className="observation-grid">
-      <section><h4>可观察事实</h4>{observation.structured_result.observable_facts.map((fact, index) => <p key={index}>{fact.observation} <small>依据：{fact.evidence.reference}</small></p>)}</section>
-      <section><h4>证据缺口</h4>{observation.structured_result.evidence_gaps?.map((gap) => <p key={gap}>{gap}</p>)}</section>
+      <section className="observation-card facts-card">
+        <header><span className="assessment-icon"><Eye size={19} /></span><div><span>01 · 已识别</span><h4>作品中的可观察事实</h4><p>只整理图片和作品说明中能够直接核查的内容。</p></div></header>
+        <ol className="fact-list">{observation.structured_result.observable_facts.map((fact, index) => <li key={index}>
+          <span className="fact-index">{String(index + 1).padStart(2, '0')}</span>
+          <div><p>{fact.observation}</p><details><summary>查看证据定位 <ChevronDown size={14} /></summary><small>{fact.evidence.reference}</small></details></div>
+        </li>)}</ol>
+      </section>
+      <section className="observation-card gaps-card">
+        <header><span className="assessment-icon"><SearchX size={19} /></span><div><span>02 · 待补充</span><h4>当前证据缺口</h4><p>这些信息无法从现有材料确认，可在答辩中补充。</p></div></header>
+        <ul className="gap-list">{observation.structured_result.evidence_gaps?.map((gap) => <li key={gap}><AlertCircle size={17} /><span>{gap}</span></li>)}</ul>
+      </section>
     </div>}
     {observation && !reassessment && <form className="defense-form" onSubmit={submitAnswers}>
       <h4>回答 3 个针对性问题</h4>
