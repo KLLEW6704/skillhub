@@ -163,7 +163,14 @@ def reviewer_assignments(db: Session, reviewer: User) -> list[dict]:
     assignments = list(
         db.scalars(
             select(ReviewAssignment)
-            .where(ReviewAssignment.reviewer_id == reviewer.id)
+            .join(
+                SkillVerification,
+                SkillVerification.id == ReviewAssignment.verification_id,
+            )
+            .where(
+                ReviewAssignment.reviewer_id == reviewer.id,
+                SkillVerification.status == VerificationStatus.pending_human_review,
+            )
             .order_by(ReviewAssignment.assigned_at.desc())
         )
     )

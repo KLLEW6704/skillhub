@@ -1,5 +1,6 @@
 from pathlib import Path
 from uuid import uuid4
+from zipfile import BadZipFile, ZipFile, is_zipfile
 
 from fastapi import HTTPException, UploadFile
 from PIL import Image, UnidentifiedImageError
@@ -26,6 +27,50 @@ IMAGE_FORMATS = {
     ".jpeg": "JPEG",
     ".webp": "WEBP",
 }
+UPLOAD_IMAGE_FORMATS = {**IMAGE_FORMATS, ".gif": "GIF"}
+MAX_IMAGE_PIXELS = 40_000_000
+
+
+def _invalid_file() -> HTTPException:
+    return HTTPException(status_code=415, detail="文件内容与声明格式不一致")
+
+
+def _validate_saved_file(destination: Path, extension: str) -> None:
+    header = destination.read_bytes()[:16]
+    if extension in UPLOAD_IMAGE_FORMATS:
+        try:
+            with Image.open(destination) as image:
+                if image.width * image.height > MAX_IMAGE_PIXELS:
+                    raise HTTPException(status_code=413, detail="图片像素尺寸超过处理限制")
+                image.verify()
+                if image.format != UPLOAD_IMAGE_FORMATS[extension]:
+                    raise _invalid_file()
+        except HTTPException:
+            raise
+        except (Image.DecompressionBombError, UnidentifiedImageError, OSError, ValueError):
+            raise HTTPException(status_code=415, detail="文件内容不是有效图片") from None
+        return
+    if extension == ".pdf" and not header.startswith(b"%PDF-"):
+        raise _invalid_file()
+    if extension == ".doc" and not header.startswith(b"\xd0\xcf\x11\xe0\xa1\xb1\x1a\xe1"):
+        raise _invalid_file()
+    if extension in {".docx", ".pptx"}:
+        if not is_zipfile(destination):
+            raise _invalid_file()
+        try:
+            with ZipFile(destination) as archive:
+                names = set(archive.namelist())
+        except (BadZipFile, OSError):
+            raise _invalid_file() from None
+        required_prefix = "word/" if extension == ".docx" else "ppt/"
+        if "[Content_Types].xml" not in names or not any(
+            name.startswith(required_prefix) for name in names
+        ):
+            raise _invalid_file()
+    if extension == ".mp4" and not (len(header) >= 12 and header[4:8] == b"ftyp"):
+        raise _invalid_file()
+    if extension == ".webm" and not header.startswith(b"\x1aE\xdf\xa3"):
+        raise _invalid_file()
 
 
 async def save_upload(file: UploadFile, upload_dir: Path, max_bytes: int) -> str:
@@ -44,22 +89,7 @@ async def save_upload(file: UploadFile, upload_dir: Path, max_bytes: int) -> str
                 if total > max_bytes:
                     raise HTTPException(status_code=413, detail="文件超过大小限制")
                 output.write(chunk)
-        if extension in IMAGE_FORMATS:
-            try:
-                with Image.open(destination) as image:
-                    image.verify()
-                    if image.format != IMAGE_FORMATS[extension]:
-                        raise HTTPException(
-                            status_code=415, detail="图片扩展名与真实格式不一致"
-                        )
-            except UnidentifiedImageError:
-                raise HTTPException(
-                    status_code=415, detail="文件内容不是有效图片"
-                ) from None
-            except (OSError, ValueError):
-                raise HTTPException(
-                    status_code=415, detail="文件内容不是有效图片"
-                ) from None
+        _validate_saved_file(destination, extension)
     except BaseException:
         destination.unlink(missing_ok=True)
         raise

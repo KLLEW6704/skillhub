@@ -125,6 +125,29 @@ def test_observation_run_persists_status_history_and_three_questions(
     ]
     assert "AI 辅助初评、待人工复核" in body["result_label"]
     assert "不可信" in model.calls[0]["system_prompt"]
+    assert '"observable_facts"' in model.calls[0]["user_prompt"]
+    assert "禁止增加字段" in model.calls[0]["user_prompt"]
+
+
+def test_assessed_evidence_cannot_be_deleted_and_break_audit_history(
+    client, student_headers, student_skill, tiny_png, tmp_path, monkeypatch
+):
+    portfolio = create_visual_evidence(
+        client, student_headers, student_skill, tiny_png, tmp_path, monkeypatch
+    )
+    model = FakeVisionModel([json.dumps(OBSERVATION_RESULT, ensure_ascii=False)])
+    client.app.dependency_overrides[get_vision_model] = lambda: model
+    client.post(
+        f"/api/v1/portfolios/{portfolio['id']}/assessments",
+        headers=student_headers,
+    )
+
+    deleted = client.delete(
+        f"/api/v1/portfolios/{portfolio['id']}", headers=student_headers
+    )
+
+    assert deleted.status_code == 409
+    assert "AI 评估记录" in deleted.json()["detail"]
 
 
 def test_description_prompt_injection_is_treated_as_untrusted_evidence(
@@ -180,6 +203,7 @@ def test_invalid_model_output_is_repaired_once_then_recorded_failed(
     assert response.json()["status"] == "failed"
     assert "结构校验失败" in response.json()["error"]
     assert len(model.calls) == 2
+    assert '"questions"' in model.calls[1]["user_prompt"]
     stored = db_session.get(AssessmentRun, response.json()["id"])
     assert stored.status == AssessmentStatus.failed
     assert stored.raw_output == '{"questions": []}'

@@ -12,6 +12,7 @@ from app.models.portfolio import (
     PortfolioEvidenceSkill,
 )
 from app.models.application import ApplicationPortfolioGrant
+from app.models.assessment import AssessmentRun
 from app.models.skill import Skill
 from app.models.user import User
 from app.services.uploads import IMAGE_FORMATS, remove_upload, save_upload
@@ -194,6 +195,14 @@ def delete_portfolio(
     )
     if portfolio is None:
         raise HTTPException(status_code=404, detail="作品不存在")
+    assessed = db.scalar(
+        select(AssessmentRun.id).where(AssessmentRun.portfolio_id == portfolio.id)
+    )
+    if assessed is not None:
+        raise HTTPException(
+            status_code=409,
+            detail="作品已有 AI 评估记录，不能删除；可改为仅自己可见",
+        )
     file_url = portfolio.file_url
     skill_id = portfolio.skill_id
     evidence = _evidence_for(db, portfolio.id)

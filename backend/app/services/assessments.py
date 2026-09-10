@@ -113,9 +113,14 @@ def _validated_completion(
     image_bytes: bytes,
     media_type: str,
 ) -> tuple[str, object]:
+    schema_json = _json(schema.model_json_schema())
+    constrained_prompt = (
+        f"{user_prompt}\n必须只返回符合以下 JSON Schema 的 JSON 对象，禁止增加字段："
+        f"{schema_json}"
+    )
     last_output = model.complete(
         system_prompt=system_prompt,
-        user_prompt=user_prompt,
+        user_prompt=constrained_prompt,
         image_bytes=image_bytes,
         image_media_type=media_type,
     )
@@ -124,6 +129,7 @@ def _validated_completion(
     except ValidationError as first_error:
         repair_prompt = (
             "以下模型输出未通过固定结构校验。仅修复为符合要求的 JSON，不添加解释。"
+            f"\nJSON Schema：{schema_json}"
             f"\n校验错误：{str(first_error)[:1500]}\n待修复输出：{last_output[:12000]}"
         )
         last_output = model.complete(

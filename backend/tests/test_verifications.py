@@ -225,6 +225,9 @@ def test_human_score_changes_require_reason_and_save_before_after_diff(
     assert no_reason.status_code == 422
     assert accepted.status_code == 201
     assert accepted.json()["status"] == "verified"
+    assert client.get(
+        "/api/v1/reviewer/assignments", headers=reviewer_headers
+    ).json() == []
     decision = db_session.query(ReviewDecision).one()
     before = json.loads(decision.before_result)
     after = json.loads(decision.after_result)

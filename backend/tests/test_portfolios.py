@@ -41,6 +41,22 @@ def test_upload_rejects_executable(
     assert not upload_dir.exists() or list(upload_dir.iterdir()) == []
 
 
+def test_upload_rejects_file_disguised_as_allowed_document(
+    client, student_headers, student_skill, tmp_path: Path, monkeypatch
+):
+    upload_dir = tmp_path / "uploads"
+    monkeypatch.setenv("UPLOAD_DIR", str(upload_dir))
+    response = client.post(
+        "/api/v1/portfolios",
+        headers=student_headers,
+        data={"skill_id": student_skill.id, "title": "伪装文档"},
+        files={"file": ("report.pdf", b"MZ-not-a-pdf", "application/pdf")},
+    )
+
+    assert response.status_code == 415
+    assert not upload_dir.exists() or list(upload_dir.iterdir()) == []
+
+
 def test_upload_rejects_oversized_file(
     client, student_headers, student_skill, tmp_path: Path, monkeypatch
 ):
