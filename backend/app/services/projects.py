@@ -1,3 +1,5 @@
+import json
+
 from fastapi import HTTPException
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -8,14 +10,20 @@ from app.models.project import (
     ProjectDeliveryRequirements,
     ProjectRequiredSkill,
 )
+from app.models.collaboration import ProjectDraft, ProjectPosition, ProjectTask
 from app.models.user import User
 from app.schemas.project import ProjectCreate, ProjectUpdate
 
 
 def create_project(db: Session, user: User, payload: ProjectCreate) -> Project:
+    source_draft = None
+    if payload.draft_id is not None:
+        source_draft = db.scalar(select(ProjectDraft).where(ProjectDraft.id == payload.draft_id, ProjectDraft.creator_id == user.id))
+        if source_draft is None:
+            raise HTTPException(status_code=404, detail="项目草稿不存在")
     project = Project(
         **payload.model_dump(
-            exclude={"required_skills", "deliverables", "acceptance_criteria"}
+            exclude={"draft_id", "required_skills", "deliverables", "acceptance_criteria", "positions", "tasks"}
         ),
         creator_id=user.id,
     )
@@ -24,7 +32,36 @@ def create_project(db: Session, user: User, payload: ProjectCreate) -> Project:
         deliverables=payload.deliverables,
         acceptance_criteria=payload.acceptance_criteria,
     )
+    codes: dict[str, ProjectPosition] = {}
+    for position_payload in payload.positions:
+        position = ProjectPosition(
+            code=position_payload.code,
+            title=position_payload.title,
+            category=position_payload.category,
+            description=position_payload.description,
+            headcount=position_payload.headcount,
+            required_skills_json=json.dumps(position_payload.required_skills, ensure_ascii=False),
+            deliverables=position_payload.deliverables,
+            sort_order=position_payload.sort_order,
+        )
+        project.positions.append(position)
+        codes[position.code] = position
     db.add(project)
+    db.flush()
+    for task_payload in payload.tasks:
+        position = codes.get(task_payload.position_code) if task_payload.position_code else None
+        if task_payload.position_code and position is None:
+            raise HTTPException(status_code=422, detail=f"任务引用了不存在的岗位：{task_payload.position_code}")
+        project.tasks.append(ProjectTask(
+            title=task_payload.title,
+            description=task_payload.description,
+            position_id=position.id if position else None,
+            assignee_student_id=task_payload.assignee_student_id,
+            due_date=task_payload.due_date,
+            sort_order=task_payload.sort_order,
+        ))
+    if source_draft is not None:
+        db.delete(source_draft)
     db.commit()
     db.refresh(project)
     return project

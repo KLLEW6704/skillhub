@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { GraduationCap, Image, Save, ShieldCheck, UserRound } from 'lucide-react'
+import { Eye, GraduationCap, Image, Save, ShieldCheck, UserRound } from 'lucide-react'
 import { type FormEvent, useMemo, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { apiRequest } from '../../lib/api'
 import type { EditableStudentProfile } from '../../lib/types'
 
@@ -83,6 +84,7 @@ function ProfileEditor({ initialProfile }: { initialProfile: EditableStudentProf
         <p className="profile-preview-affiliation">{affiliation || '学校 · 学院 · 专业 · 年级'}</p>
         <blockquote>{draft.bio || '个人介绍会显示在这里。可以简单说明你的方向、工具与期待参与的项目。'}</blockquote>
         <small>这里只预览个人资料；公开作品与核验记录会在档案下方继续展示。</small>
+        <Link className="profile-full-preview-link" to={`/talent/${draft.user_id}`}><Eye size={16} />查看完整公开档案</Link>
       </aside>
     </div>
   </section>

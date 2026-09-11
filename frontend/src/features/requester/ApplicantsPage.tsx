@@ -17,7 +17,7 @@ export function ApplicantsPage() {
     <p className="eyebrow">AUTHORIZED CANDIDATE FILES</p><h1>申请者管理</h1>
     <p className="page-intro">这里只展示学生主动授权给本项目的作品。AI 初评是辅助信号，最终以人工核验与真实项目表现为准。</p>
     <div className="applicant-list">{applicants.data?.map((application) => <article className="applicant-card" key={application.id}>
-      <header><div><span>申请 #{application.id}</span><h2>{application.student?.display_name ?? `学生 ${application.student_id}`}</h2></div><span className="status-chip" data-status={application.status}>{statusLabel(application.status)}</span></header>
+      <header><div><span>申请 #{application.id} · {application.position?.title || '综合岗位'}</span><h2>{application.student?.display_name ?? `学生 ${application.student_id}`}</h2></div><span className="status-chip" data-status={application.status}>{statusLabel(application.status)}</span></header>
       <p className="application-message">“{application.message || '未填写申请留言'}”</p>
       <div className="skill-tags">{application.student?.skills.map((skill) => <span key={skill.id}>{skill.name}</span>)}</div>
       <section><h3>学生授权作品</h3>{application.authorized_portfolios?.length ? <div className="authorized-grid">{application.authorized_portfolios.map((portfolio) => <article className="authorized-work" key={portfolio.id}>

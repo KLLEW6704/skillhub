@@ -53,7 +53,7 @@ def invite_student(
     db: Session = Depends(get_db),
 ):
     return invite_student_to_project(
-        db, current, project_id, payload.student_id, payload.message
+        db, current, project_id, payload.student_id, payload.message, payload.position_id
     )
 
 
@@ -83,7 +83,7 @@ def view_invitation(
 
 @router.post("/projects/{project_id}/applications", response_model=ApplicationResponse, status_code=201)
 def apply(project_id: int, payload: ApplicationCreate, current: User = Depends(student_only), db: Session = Depends(get_db)):
-    return apply_to_project(db, current, project_id, payload.message, payload.portfolio_ids)
+    return apply_to_project(db, current, project_id, payload.message, payload.portfolio_ids, payload.position_id)
 
 
 @router.get("/applications/mine", response_model=list[ApplicationResponse])
@@ -163,9 +163,12 @@ def project_applications(project_id: int, current: User = Depends(requester_only
                 "id": application.id,
                 "project_id": application.project_id,
                 "student_id": application.student_id,
+                "position_id": application.position_id,
                 "message": application.message,
                 "status": application.status,
                 "created_at": application.created_at,
+                "project": project,
+                "position": application.position,
                 "student": {
                     "user_id": application.student_id,
                     "display_name": profile.display_name if profile else student.username,

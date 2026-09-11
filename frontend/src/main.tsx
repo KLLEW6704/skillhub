@@ -7,6 +7,7 @@ import './styles/index.css'
 import './styles/workspace.css'
 import './styles/requester.css'
 import './styles/evidence.css'
+import './styles/collaboration.css'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

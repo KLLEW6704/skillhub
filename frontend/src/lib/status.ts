@@ -4,6 +4,7 @@ const labels: Record<string, string> = {
   pending: '待处理', accepted: '已录用', rejected: '未通过', finished: '已完成', approved: '审核通过',
   recruiting: '招募中', in_progress: '进行中', awaiting_review: '待项目评价', completed: '已完成', closed: '已关闭',
   queued: '排队中', running: '评估中', succeeded: 'AI 初评完成', failed: '评估失败',
+  todo: '未完成', done: '已完成',
   pending_human_review: '待人工复核', verified: '已核验', more_evidence: '补充材料', revoked: '已撤销',
 }
 

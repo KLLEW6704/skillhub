@@ -32,7 +32,8 @@ export function ProjectDetailPage() {
   function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     const form = new FormData(event.currentTarget)
-    apply.mutate({ message: form.get('message'), portfolio_ids: form.getAll('portfolio_ids').map(Number) })
+    const positionId = String(form.get('position_id') ?? '')
+    apply.mutate({ message: form.get('message'), portfolio_ids: form.getAll('portfolio_ids').map(Number), position_id:positionId ? Number(positionId) : null })
   }
 
   return <section className="detail-page project-detail-page">
@@ -42,12 +43,12 @@ export function ProjectDetailPage() {
         <p className="eyebrow">PROJECT FILE · #{data.id}</p>
         <h1>{data.title}</h1>
         <div className="skill-tags">{data.required_skills.map((skill) => <span key={skill}>{skill}</span>)}</div>
-        <h2>项目说明</h2>
-        <p className="detail-copy">{data.description}</p>
-        <h2>约定交付物</h2>
-        <p className="detail-copy">{data.deliverables || '项目方尚未补充交付物'}</p>
-        <h2>验收标准</h2>
-        <p className="detail-copy">{data.acceptance_criteria || '项目方尚未补充验收标准'}</p>
+        <div className="project-summary-grid">
+          <section><span>01</span><h2>项目说明</h2><p>{data.description}</p></section>
+          <section><span>02</span><h2>约定交付物</h2><p>{data.deliverables || '项目方尚未补充交付物'}</p></section>
+          <section><span>03</span><h2>验收标准</h2><p>{data.acceptance_criteria || '项目方尚未补充验收标准'}</p></section>
+        </div>
+        {!!data.positions?.length && <section className="public-position-section"><div className="section-title-row"><div><p className="eyebrow">OPEN POSITIONS</p><h2>招募岗位</h2></div><span>{data.positions.reduce((total, position) => total + position.headcount, 0)} 个名额</span></div><div className="public-position-grid">{data.positions.map((position) => <article key={position.id}><header><span>{position.category}</span><b>{position.headcount} 人</b></header><h3>{position.title}</h3><p>{position.description}</p><div className="skill-tags">{position.required_skills.map((skill) => <span key={skill}>{skill}</span>)}</div><small>交付：{position.deliverables}</small></article>)}</div></section>}
       </article>
 
       <section className="project-recruitment" aria-labelledby="recruitment-title">
@@ -61,6 +62,7 @@ export function ProjectDetailPage() {
         </header>
 
         {user?.role === 'student' && acceptingApplications && !alreadyApplied ? <form className="application-form project-application-form" onSubmit={submit}>
+          {!!data.positions?.length && <fieldset className="position-choice-field"><legend>选择申请岗位</legend><div>{data.positions.map((position, index) => <label key={position.id}><input type="radio" name="position_id" value={position.id} required defaultChecked={data.positions?.length === 1 || index === 0} /><span><b>{position.title}</b><small>{position.category} · 招募 {position.headcount} 人</small></span></label>)}</div></fieldset>}
           <label className="project-message-field"><span>申请留言</span><textarea name="message" placeholder="说明相关经验、申请原因与可投入时间" /></label>
           <fieldset className="project-evidence-field">
             <legend>主动授权给项目方的作品</legend>

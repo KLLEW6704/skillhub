@@ -40,6 +40,7 @@ export function InvitationsPage() {
       <div className="invitation-card-body">
         <span className="evidence-kicker">{invitation.project.category}</span>
         <h2>{invitation.project.title}</h2>
+        {invitation.position && <p className="invitation-position">受邀岗位：<b>{invitation.position.title}</b> · {invitation.position.category}</p>}
         <p className="invitation-message">{invitation.message || '项目方认为你的技能档案与这个项目较为匹配，邀请你了解项目。'}</p>
         <div className="skill-tags">{invitation.project.required_skills.map((skill) => <span key={skill}>{skill}</span>)}</div>
       </div>

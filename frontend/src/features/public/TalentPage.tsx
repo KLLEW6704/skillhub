@@ -1,8 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { ArrowDownWideNarrow, Search, SlidersHorizontal, X } from 'lucide-react'
 import { useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
-import { SkillLevel } from '../../components/SkillLevel'
+import { TalentCard } from '../../components/TalentCard'
 import { apiRequest } from '../../lib/api'
 import type { StudentProfile } from '../../lib/types'
 
@@ -73,6 +72,6 @@ export function TalentPage() {
       </div>
       <footer aria-live="polite"><span>找到 <b>{students.length}</b> / {data?.length ?? 0} 份学生档案</span>{hasFilters && <small>筛选条件已生效</small>}</footer>
     </section>
-    {isLoading ? <div className="page-state">整理学生档案…</div> : isError ? <div className="page-state error">档案加载失败，请稍后重试</div> : students.length ? <div className="talent-grid">{students.map((student, index) => <Link to={`/talent/${student.user_id}`} className="talent-card" key={student.user_id}><span className="talent-index">T-{String(index + 1).padStart(3, '0')}</span><h2>{student.display_name}</h2><p>{[student.school, student.major].filter(Boolean).join(' · ') || '个人资料持续完善中'}</p><small>{student.portfolios.length} 份公开作品证据</small><div>{featuredSkills(student, skill).map((item) => <SkillLevel skill={item} key={item.id} />)}</div></Link>)}</div> : <div className="empty-state talent-empty-state"><b>∅</b><h2>没有找到符合条件的档案</h2><p>可以降低活跃度要求，或清除部分筛选条件后再试。</p><button type="button" className="secondary-button" onClick={clearFilters}>清除全部筛选</button></div>}
+    {isLoading ? <div className="page-state">整理学生档案…</div> : isError ? <div className="page-state error">档案加载失败，请稍后重试</div> : students.length ? <div className="talent-grid">{students.map((student, index) => <TalentCard student={student} index={index + 1} skills={featuredSkills(student, skill)} key={student.user_id} />)}</div> : <div className="empty-state talent-empty-state"><b>∅</b><h2>没有找到符合条件的档案</h2><p>可以降低活跃度要求，或清除部分筛选条件后再试。</p><button type="button" className="secondary-button" onClick={clearFilters}>清除全部筛选</button></div>}
   </section>
 }

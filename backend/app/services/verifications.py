@@ -17,10 +17,9 @@ from app.models.verification import (
     SkillVerification,
     VerificationStatus,
 )
-from app.schemas.assessment import RUBRIC_CRITERIA
 from app.schemas.verification import ReviewDecisionCreate
-from app.services.assessments import RUBRIC_WEIGHTS
 from app.services.portfolios import portfolio_to_response
+from app.services.rubrics import EVIDENCE_RUBRIC_WEIGHTS, evidence_rubric
 
 
 def create_pending_verification(db: Session, run: AssessmentRun, portfolio: Portfolio) -> SkillVerification:
@@ -156,6 +155,7 @@ def reviewer_assignment_to_response(
             for question in questions
         ],
         "ai_result": json.loads(verification.ai_result_snapshot),
+        "rubric_version": run.rubric_version,
     }
 
 
@@ -203,11 +203,19 @@ def decide_verification(
     after = deepcopy(before)
     if payload.adjusted_scores:
         by_name = {item["criterion"]: item for item in after["criteria"]}
+        if not set(payload.adjusted_scores).issubset(by_name):
+            raise HTTPException(status_code=422, detail="包含未知量表维度")
         for criterion, score in payload.adjusted_scores.items():
             by_name[criterion]["score"] = score
+        portfolio = db.get(Portfolio, verification.portfolio_id)
+        evidence = db.scalar(select(PortfolioEvidence).where(PortfolioEvidence.portfolio_id == portfolio.id))
+        rubric = evidence_rubric(evidence.evidence_type if evidence else "")
+        weights_list = EVIDENCE_RUBRIC_WEIGHTS.get(evidence.evidence_type if evidence else "", [20] * len(by_name))
+        criteria = rubric[1] if rubric else list(by_name)
+        weights = dict(zip(criteria, weights_list))
         total = sum(
-            by_name[name]["score"] * RUBRIC_WEIGHTS[name] / 4
-            for name in RUBRIC_CRITERIA
+            by_name[name]["score"] * weights[name] / 4
+            for name in criteria
         )
         after["total_score"] = round(total, 1)
     after["review_status"] = payload.outcome.value
@@ -292,6 +300,7 @@ def public_credential(db: Session, credential_number: str) -> tuple[SkillCredent
         )
     )
     result = json.loads(verification.human_result or verification.ai_result_snapshot)
+    ai_result = json.loads(verification.ai_result_snapshot)
     return credential, {
         "name": "SkillHub 试行技能徽章",
         "credential_number": credential.credential_number,
@@ -301,8 +310,10 @@ def public_credential(db: Session, credential_number: str) -> tuple[SkillCredent
         "issued_at": credential.issued_at,
         "revoked_at": credential.revoked_at,
         "evidence_summary": {
+            "portfolio_id": portfolio.id,
             "title": portfolio.title,
             "evidence_type": evidence.evidence_type if evidence else "other",
         },
+        "ai_result": ai_result,
         "verified_result": result,
     }

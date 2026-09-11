@@ -1,5 +1,13 @@
 .workspace{display:grid;grid-template-columns:250px 1fr;min-height:calc(100vh - 84px)}.workspace>aside{border-right:1px solid var(--line);padding:45px 30px;display:flex;flex-direction:column;gap:8px}.workspace>aside h2{font:700 25px "Noto Serif SC",serif;margin:8px 0 25px}.workspace>aside a{padding:12px;border-left:2px solid transparent;font-size:13px}.workspace>aside a.active{border-color:var(--amber);background:rgba(196,135,43,.08)}.workspace-main{padding:50px clamp(24px,6vw,80px)}.workspace-page h1{font:700 clamp(38px,5vw,65px) "Noto Serif SC",serif;margin:10px 0 35px}.inline-form{display:grid;grid-template-columns:1fr 2fr auto;gap:16px;align-items:end;background:var(--paper-light);padding:22px;border:1px solid var(--line);margin-bottom:30px}.inline-form label,.stack-form label{display:grid;gap:7px;font-size:11px}.inline-form input,.inline-form select,.stack-form input,.stack-form textarea{padding:11px;border:0;border-bottom:1px solid var(--line);background:transparent}.stack-form{max-width:650px;display:grid;gap:22px}.stack-form textarea{min-height:140px}.stat-row{display:grid;grid-template-columns:repeat(3,1fr);border:1px solid var(--line);margin-bottom:35px}.stat-row div{padding:25px;border-right:1px solid var(--line);display:grid}.stat-row b{font:700 36px "Noto Serif SC",serif;color:var(--amber)}.stat-row span{font-size:11px}.record-item{display:flex;justify-content:space-between;padding:20px;border-bottom:1px solid var(--line)}@media(max-width:760px){.workspace{grid-template-columns:1fr}.workspace>aside{border-right:0;border-bottom:1px solid var(--line);padding:24px}.inline-form{grid-template-columns:1fr}.workspace-main{padding:30px 20px}}
 
+.workspace>aside .student-profile-preview-link{display:grid;grid-template-columns:34px minmax(0,1fr) auto;gap:10px;align-items:center;margin:0 0 17px;padding:13px 12px;border:1px solid var(--ink);border-left:3px solid var(--amber);background:var(--ink);color:var(--paper-light)}
+.student-profile-preview-link>svg:first-child{padding:7px;width:34px;height:34px;border:1px solid rgba(255,255,255,.28)}
+.student-profile-preview-link span{display:grid;gap:3px;min-width:0}
+.student-profile-preview-link b{font-size:14px}
+.student-profile-preview-link small{color:#becbc6;font-size:12px;line-height:1.45}
+.student-profile-preview-link>svg:last-child{color:var(--amber)}
+.workspace>aside .student-profile-preview-link:hover{border-color:var(--amber)}
+
 .growth-overview-section{margin-top:46px}
 .growth-overview-section>header{display:flex;align-items:flex-end;justify-content:space-between;gap:28px;margin-bottom:18px;padding-bottom:18px;border-bottom:1px solid var(--ink)}
 .growth-overview-section>header h2{margin:5px 0 0;font:700 30px "Noto Serif SC",serif}
@@ -126,6 +134,8 @@
 .profile-preview-affiliation{margin:0;color:#5f716b;font-size:13px;line-height:1.65}
 .profile-live-preview blockquote{margin:24px 0;padding-left:16px;border-left:2px solid var(--amber);color:#496159;font:15px/1.8 "Noto Serif SC",serif}
 .profile-live-preview>small{display:block;padding-top:17px;border-top:1px solid var(--line);color:#71817b;font-size:12px;line-height:1.65}
+.profile-full-preview-link{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:17px;padding:11px 14px;border:1px solid var(--ink);background:var(--ink);color:var(--paper-light);font-size:13px;font-weight:700}
+.profile-full-preview-link:hover{border-color:var(--amber);background:var(--amber)}
 @media(max-width:1000px){.profile-editor-layout{grid-template-columns:1fr}.profile-live-preview{position:static;display:grid;grid-template-columns:auto 1fr;column-gap:20px}.profile-live-preview>header,.profile-live-preview>small{grid-column:1/-1}.profile-avatar-preview{grid-row:2/6}.profile-live-preview blockquote{margin:12px 0 20px}}
 @media(max-width:700px){.profile-editor-heading{grid-template-columns:1fr;gap:20px}.profile-completeness{max-width:none}.profile-form-grid{grid-template-columns:1fr}.profile-form-section{padding:22px 18px}.profile-form-actions{align-items:stretch;flex-direction:column;padding:18px}.profile-form-actions .primary-button{width:100%}.profile-editor-form>.form-error,.profile-save-success{padding-left:18px;padding-right:18px}.profile-live-preview{display:block}.profile-avatar-preview{margin-bottom:20px}}
 .workspace-nav-badge{display:grid;place-items:center;min-width:23px;height:23px;padding:0 6px;border-radius:999px;background:var(--brick);color:#fff;font-size:12px}

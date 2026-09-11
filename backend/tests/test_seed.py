@@ -3,11 +3,14 @@ from pathlib import Path
 from sqlalchemy import func, select
 
 from app.models.application import Application
+from app.models.assessment import AssessmentRun
 from app.models.portfolio import Portfolio
 from app.models.project import Project
+from app.models.project_validation import ProjectValidationRecord
 from app.models.review import Review
 from app.models.skill import Skill
 from app.models.user import User
+from app.models.verification import SkillCredential, SkillVerification, VerificationStatus
 from app.seed import seed_database
 
 
@@ -39,8 +42,34 @@ def test_seed_creates_documented_demo_accounts(db_session):
     seed_database(db_session)
 
     usernames = set(db_session.scalars(select(User.username)))
+    student = db_session.scalar(select(User).where(User.username == "student"))
+    student_skills = set(db_session.scalars(select(Skill.name).where(Skill.user_id == student.id)))
 
     assert {"admin", "reviewer", "student", "designer", "campus_org"} <= usernames
+    assert {"Python", "数据分析", "软件开发", "项目协作"} <= student_skills
+
+
+def test_seed_creates_complete_verified_demo_archives(db_session):
+    seed_database(db_session)
+
+    students = list(
+        db_session.scalars(select(User).where(User.username.in_(["student", "designer"])))
+    )
+    student_ids = {student.id for student in students}
+    verifications = list(
+        db_session.scalars(
+            select(SkillVerification).where(
+                SkillVerification.student_id.in_(student_ids),
+                SkillVerification.status == VerificationStatus.verified,
+            )
+        )
+    )
+
+    assert len(students) == 2
+    assert {verification.student_id for verification in verifications} == student_ids
+    assert db_session.scalar(select(func.count(AssessmentRun.id))) == 4
+    assert db_session.scalar(select(func.count(SkillCredential.id))) == 2
+    assert db_session.scalar(select(func.count(ProjectValidationRecord.id))) == 2
 
 
 def test_seed_creates_stable_labeled_demo_assets(db_session, tmp_path: Path):

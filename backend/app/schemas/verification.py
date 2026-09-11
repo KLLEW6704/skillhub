@@ -4,7 +4,6 @@ from typing import Literal
 from pydantic import BaseModel, Field, field_validator
 
 from app.models.verification import VerificationStatus
-from app.schemas.assessment import RUBRIC_CRITERIA
 
 
 class ReviewAssignmentCreate(BaseModel):
@@ -23,8 +22,6 @@ class ReviewDecisionCreate(BaseModel):
     @field_validator("adjusted_scores")
     @classmethod
     def validate_scores(cls, scores: dict[str, int]) -> dict[str, int]:
-        if not set(scores).issubset(RUBRIC_CRITERIA):
-            raise ValueError("包含未知量表维度")
         if any(score < 0 or score > 4 for score in scores.values()):
             raise ValueError("人工调整分值必须在 0–4 之间")
         return scores
@@ -77,6 +74,7 @@ class ReviewerAssignmentResponse(BaseModel):
     evidence: dict
     defense: list[dict]
     ai_result: dict
+    rubric_version: str
 
 
 class PublicCredentialResponse(BaseModel):
@@ -88,4 +86,5 @@ class PublicCredentialResponse(BaseModel):
     issued_at: datetime
     revoked_at: datetime | None
     evidence_summary: dict
+    ai_result: dict
     verified_result: dict

@@ -2,6 +2,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { cleanup, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { HttpResponse, http } from 'msw'
+import { MemoryRouter } from 'react-router-dom'
 import { afterEach, expect, it } from 'vitest'
 import { server } from '../../test/server'
 import { ProfileEditPage } from './ProfileEditPage'
@@ -29,11 +30,12 @@ it('edits expanded student details and updates the public preview', async () => 
     }),
   )
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } })
-  render(<QueryClientProvider client={client}><ProfileEditPage /></QueryClientProvider>)
+  render(<QueryClientProvider client={client}><MemoryRouter><ProfileEditPage /></MemoryRouter></QueryClientProvider>)
 
   expect(await screen.findByDisplayValue('南方大学')).toBeInTheDocument()
   expect(screen.getByLabelText('学院')).toHaveValue('计算机学院')
   expect(screen.getByText('南方大学 · 计算机学院 · 数据科学 · 大三')).toBeInTheDocument()
+  expect(screen.getByRole('link', { name: '查看完整公开档案' })).toHaveAttribute('href', '/talent/1')
 
   await user.clear(screen.getByLabelText('学院'))
   await user.type(screen.getByLabelText('学院'), '人工智能学院')

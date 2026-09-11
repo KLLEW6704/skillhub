@@ -17,7 +17,8 @@ from app.models.application import ApplicationPortfolioGrant
 from app.models.assessment import AssessmentRun
 from app.models.skill import Skill
 from app.models.user import User
-from app.services.uploads import IMAGE_FORMATS, remove_upload, save_upload
+from app.services.rubrics import evidence_rubric
+from app.services.uploads import IMAGE_FORMATS, SOURCE_FORMATS, remove_upload, save_upload
 from app.services.growth import recalculate_skill
 
 
@@ -165,7 +166,9 @@ def portfolio_to_response(db: Session, portfolio: Portfolio) -> dict:
         "ai_processing_consent_at": (
             evidence.ai_processing_consent_at if evidence else None
         ),
-        "ai_supported": extension in IMAGE_FORMATS,
+        "ai_supported": bool(evidence and evidence_rubric(evidence.evidence_type)) and (
+            extension in IMAGE_FORMATS or extension in SOURCE_FORMATS
+        ),
         "created_at": portfolio.created_at,
     }
 

@@ -1,7 +1,7 @@
 from datetime import date, datetime, timezone
 
 from fastapi import HTTPException
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app.models.application import (
@@ -12,6 +12,7 @@ from app.models.application import (
     ProjectInvitation,
 )
 from app.models.portfolio import Portfolio
+from app.models.collaboration import ProjectPosition, ProjectTask, TaskStatus
 from app.models.project import AuditStatus, LifecycleStatus, Project
 from app.models.user import User, UserRole
 
@@ -22,6 +23,7 @@ def invite_student_to_project(
     project_id: int,
     student_id: int,
     message: str | None,
+    position_id: int | None = None,
 ) -> ProjectInvitation:
     project = db.get(Project, project_id)
     if project is None or project.creator_id != requester.id:
@@ -32,6 +34,7 @@ def invite_student_to_project(
         raise HTTPException(status_code=409, detail="只有招募中的项目可以发出邀约")
     if project.deadline < date.today():
         raise HTTPException(status_code=409, detail="项目申请已截止")
+    position = _resolve_position(db, project, position_id)
 
     student = db.get(User, student_id)
     if student is None or student.role != UserRole.student or not student.is_active:
@@ -58,6 +61,7 @@ def invite_student_to_project(
         student_id=student_id,
         inviter_id=requester.id,
         message=message.strip() if message and message.strip() else None,
+        position_id=position.id if position else None,
     )
     db.add(invitation)
     db.commit()
@@ -85,6 +89,7 @@ def apply_to_project(
     project_id: int,
     message: str | None,
     portfolio_ids: list[int] | None = None,
+    position_id: int | None = None,
 ) -> Application:
     project = db.get(Project, project_id)
     if project is None or project.audit_status != AuditStatus.approved:
@@ -93,6 +98,7 @@ def apply_to_project(
         raise HTTPException(status_code=409, detail="项目当前不接受申请")
     if project.deadline < date.today():
         raise HTTPException(status_code=409, detail="项目申请已截止")
+    position = _resolve_position(db, project, position_id)
     existing = db.scalar(select(Application).where(Application.project_id == project_id, Application.student_id == student.id))
     if existing:
         raise HTTPException(status_code=409, detail="不能重复申请同一项目")
@@ -107,7 +113,14 @@ def apply_to_project(
         )
         if owned_ids != set(selected_ids):
             raise HTTPException(status_code=404, detail="选择的作品不存在")
-    application = Application(project_id=project_id, student_id=student.id, message=message)
+    invitation = db.scalar(
+        select(ProjectInvitation).where(
+            ProjectInvitation.project_id == project_id,
+            ProjectInvitation.student_id == student.id,
+        )
+    )
+    selected_position_id = position.id if position else (invitation.position_id if invitation else None)
+    application = Application(project_id=project_id, student_id=student.id, position_id=selected_position_id, message=message)
     db.add(application)
     db.flush()
     for portfolio_id in selected_ids:
@@ -116,12 +129,6 @@ def apply_to_project(
                 application_id=application.id, portfolio_id=portfolio_id
             )
         )
-    invitation = db.scalar(
-        select(ProjectInvitation).where(
-            ProjectInvitation.project_id == project_id,
-            ProjectInvitation.student_id == student.id,
-        )
-    )
     if invitation:
         invitation.status = InvitationStatus.applied
         invitation.viewed_at = invitation.viewed_at or datetime.now(timezone.utc)
@@ -140,6 +147,16 @@ def handle_application(db: Session, owner: User, application_id: int, target: Ap
         raise HTTPException(status_code=409, detail="申请已处理")
     if project.lifecycle_status != LifecycleStatus.recruiting:
         raise HTTPException(status_code=409, detail="项目已不在招募状态")
+    if target == ApplicationStatus.accepted and application.position_id:
+        position = db.get(ProjectPosition, application.position_id)
+        if position is None or position.project_id != project.id:
+            raise HTTPException(status_code=409, detail="申请岗位不存在")
+        occupied = db.scalar(select(func.count()).select_from(Application).where(
+            Application.position_id == position.id,
+            Application.status.in_({ApplicationStatus.accepted, ApplicationStatus.finished}),
+        )) or 0
+        if occupied >= position.headcount:
+            raise HTTPException(status_code=409, detail="该岗位名额已满")
     application.status = target
     db.commit(); db.refresh(application)
     return application
@@ -156,6 +173,26 @@ def transition_project(db: Session, owner: User, project_id: int, target: Lifecy
         accepted = db.scalar(select(Application).where(Application.project_id == project.id, Application.status == ApplicationStatus.accepted))
         if accepted is None:
             raise HTTPException(status_code=409, detail="至少录用一名学生后才能开始项目")
+    if target == LifecycleStatus.awaiting_review:
+        unfinished = db.scalar(select(ProjectTask).where(
+            ProjectTask.project_id == project.id,
+            ProjectTask.status != TaskStatus.done,
+        ))
+        if unfinished is not None:
+            raise HTTPException(status_code=409, detail="还有未完成事项，不能结束执行")
     project.lifecycle_status = target
     db.commit(); db.refresh(project)
     return project
+
+
+def _resolve_position(db: Session, project: Project, position_id: int | None) -> ProjectPosition | None:
+    if not project.positions:
+        return None
+    if position_id is None:
+        if len(project.positions) == 1:
+            return project.positions[0]
+        raise HTTPException(status_code=422, detail="请选择申请岗位")
+    position = db.get(ProjectPosition, position_id)
+    if position is None or position.project_id != project.id:
+        raise HTTPException(status_code=422, detail="所选岗位不属于该项目")
+    return position

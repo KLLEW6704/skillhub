@@ -19,33 +19,33 @@ class DashScopeVisionModel:
         *,
         system_prompt: str,
         user_prompt: str,
-        image_bytes: bytes,
-        image_media_type: str,
+        image_bytes: bytes | None,
+        image_media_type: str | None,
     ) -> str:
         api_key = self.settings.dashscope_api_key
         if not api_key:
             raise ModelGatewayError("未配置 DASHSCOPE_API_KEY")
-        encoded = base64.b64encode(image_bytes).decode("ascii")
+        user_content: str | list[dict] = user_prompt
+        if image_bytes is not None and image_media_type is not None:
+            encoded = base64.b64encode(image_bytes).decode("ascii")
+            user_content = [
+                {"type": "text", "text": user_prompt},
+                {
+                    "type": "image_url",
+                    "image_url": {"url": f"data:{image_media_type};base64,{encoded}"},
+                },
+            ]
         payload = {
             "model": self.model_name,
             "messages": [
                 {"role": "system", "content": system_prompt},
-                {
-                    "role": "user",
-                    "content": [
-                        {"type": "text", "text": user_prompt},
-                        {
-                            "type": "image_url",
-                            "image_url": {
-                                "url": f"data:{image_media_type};base64,{encoded}"
-                            },
-                        },
-                    ],
-                },
+                {"role": "user", "content": user_content},
             ],
             "temperature": 0.1,
             "response_format": {"type": "json_object"},
         }
+        if self.model_name.lower().startswith(("qwen3.5", "qwen3.6", "qwen3.7", "qwen3.8")):
+            payload["enable_thinking"] = False
         endpoint = f"{self.settings.dashscope_base_url.rstrip('/')}/chat/completions"
         try:
             with httpx.Client(timeout=60) as client:

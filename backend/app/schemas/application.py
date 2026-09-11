@@ -5,6 +5,7 @@ from pydantic import BaseModel, ConfigDict, Field
 from app.models.application import ApplicationStatus, InvitationStatus
 from app.schemas.portfolio import PortfolioResponse
 from app.schemas.project import ProjectResponse
+from app.schemas.collaboration import ProjectPositionResponse
 from app.schemas.skill import SkillResponse
 from app.models.verification import VerificationStatus
 
@@ -12,6 +13,7 @@ from app.models.verification import VerificationStatus
 class ApplicationCreate(BaseModel):
     message: str | None = Field(default=None, max_length=2000)
     portfolio_ids: list[int] = Field(default_factory=list, max_length=12)
+    position_id: int | None = Field(default=None, gt=0)
 
 
 class ApplicationResponse(BaseModel):
@@ -20,9 +22,12 @@ class ApplicationResponse(BaseModel):
     id: int
     project_id: int
     student_id: int
+    position_id: int | None
     message: str | None
     status: ApplicationStatus
     created_at: datetime
+    project: ProjectResponse
+    position: ProjectPositionResponse | None
 
 
 class ApplicantSummary(BaseModel):
@@ -44,6 +49,7 @@ class RequesterApplicationResponse(ApplicationResponse):
 
 class InvitationCreate(BaseModel):
     student_id: int = Field(gt=0)
+    position_id: int | None = Field(default=None, gt=0)
     message: str | None = Field(default=None, max_length=1000)
 
 
@@ -54,8 +60,10 @@ class InvitationResponse(BaseModel):
     project_id: int
     student_id: int
     inviter_id: int
+    position_id: int | None
     message: str | None
     status: InvitationStatus
     created_at: datetime
     viewed_at: datetime | None
     project: ProjectResponse
+    position: ProjectPositionResponse | None

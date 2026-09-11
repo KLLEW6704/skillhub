@@ -1,7 +1,7 @@
 from datetime import datetime, timezone
 from enum import Enum
 
-from sqlalchemy import DateTime, Enum as SqlEnum, ForeignKey, Text, UniqueConstraint
+from sqlalchemy import DateTime, Enum as SqlEnum, ForeignKey, Integer, Text, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
@@ -27,9 +27,12 @@ class Application(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     project_id: Mapped[int] = mapped_column(ForeignKey("projects.id"), index=True)
     student_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
+    position_id: Mapped[int | None] = mapped_column(ForeignKey("project_positions.id"), index=True)
     message: Mapped[str | None] = mapped_column(Text)
     status: Mapped[ApplicationStatus] = mapped_column(SqlEnum(ApplicationStatus), default=ApplicationStatus.pending)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
+    project: Mapped["Project"] = relationship(lazy="joined")
+    position: Mapped["ProjectPosition | None"] = relationship(lazy="joined")
 
 
 class ApplicationPortfolioGrant(Base):
@@ -58,6 +61,7 @@ class ProjectInvitation(Base):
     project_id: Mapped[int] = mapped_column(ForeignKey("projects.id"), index=True)
     student_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
     inviter_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
+    position_id: Mapped[int | None] = mapped_column(ForeignKey("project_positions.id"), index=True)
     message: Mapped[str | None] = mapped_column(Text)
     status: Mapped[InvitationStatus] = mapped_column(
         SqlEnum(InvitationStatus), default=InvitationStatus.pending, index=True
@@ -67,3 +71,4 @@ class ProjectInvitation(Base):
     )
     viewed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     project: Mapped["Project"] = relationship(lazy="joined")
+    position: Mapped["ProjectPosition | None"] = relationship(lazy="joined")

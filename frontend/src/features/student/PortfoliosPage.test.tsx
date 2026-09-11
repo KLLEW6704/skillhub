@@ -2,6 +2,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { cleanup, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { HttpResponse, http } from 'msw'
+import { MemoryRouter } from 'react-router-dom'
 import { afterEach, expect, it } from 'vitest'
 import { server } from '../../test/server'
 import { PortfoliosPage } from './PortfoliosPage'
@@ -17,7 +18,7 @@ it('shows saved evidence, privacy scope, and the real AI format boundary', async
     http.get('/api/v1/portfolios/9/assessments', () => HttpResponse.json([])),
   )
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } })
-  render(<QueryClientProvider client={client}><PortfoliosPage /></QueryClientProvider>)
+  render(<QueryClientProvider client={client}><MemoryRouter><PortfoliosPage /></MemoryRouter></QueryClientProvider>)
   expect(await screen.findByText('社团招新方案')).toBeInTheDocument()
   expect(screen.queryByText(/暂不支持 AI 评估/)).not.toBeInTheDocument()
   await user.click(screen.getByRole('button', { name: '查看作品证据：社团招新方案' }))
@@ -39,9 +40,10 @@ it('saves an incomplete form as a durable draft without publishing evidence', as
     }),
   )
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } })
-  render(<QueryClientProvider client={client}><PortfoliosPage /></QueryClientProvider>)
+  render(<QueryClientProvider client={client}><MemoryRouter><PortfoliosPage /></MemoryRouter></QueryClientProvider>)
 
   await user.click(await screen.findByRole('button', { name: '建立证据档案' }))
+  expect(screen.getByRole('link', { name: '添加或管理技能' })).toHaveAttribute('href', '/student/skills')
   await user.type(screen.getByLabelText('作品标题'), '只填一半的作品')
   await user.type(screen.getByLabelText(/创作背景/), '课堂练习')
   await user.click(screen.getByRole('button', { name: '保存草稿' }))
@@ -59,7 +61,7 @@ it('opens a saved draft with its previous fields', async () => {
     http.get('/api/v1/portfolios/drafts', () => HttpResponse.json([{ id: 4, user_id: 1, skill_id: 1, title: '待继续的海报', description: null, evidence_type: 'visual_poster', creation_context: '迎新活动', personal_role: null, process_description: null, iteration_notes: null, visibility: 'private', related_skill_ids: [1], ai_processing_consent: false, created_at: '2026-09-10T10:00:00Z', updated_at: '2026-09-10T10:00:00Z' }])),
   )
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } })
-  render(<QueryClientProvider client={client}><PortfoliosPage /></QueryClientProvider>)
+  render(<QueryClientProvider client={client}><MemoryRouter><PortfoliosPage /></MemoryRouter></QueryClientProvider>)
 
   await user.click(await screen.findByRole('button', { name: '继续填写' }))
 

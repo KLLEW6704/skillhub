@@ -104,7 +104,7 @@ def test_reviewer_assignment_exposes_evidence_defense_and_rubric(
     monkeypatch,
     db_session,
 ):
-    create_pending_verification(
+    portfolio, _, _ = create_pending_verification(
         client,
         student_headers,
         student_skill,
@@ -248,7 +248,7 @@ def test_only_verified_result_gets_pilot_credential_and_public_safe_record(
     monkeypatch,
     db_session,
 ):
-    create_pending_verification(
+    portfolio, _, _ = create_pending_verification(
         client,
         student_headers,
         student_skill,
@@ -283,6 +283,8 @@ def test_only_verified_result_gets_pilot_credential_and_public_safe_record(
     assert public.json()["status"] == "active"
     assert public.json()["rubric_version"] == "visual-poster-v1"
     assert public.json()["issuer"] == reviewer_user.username
+    assert public.json()["evidence_summary"]["portfolio_id"] == portfolio["id"]
+    assert public.json()["ai_result"]["review_status"] == "pending_human_review"
     assert "email" not in public_text
     assert "api_key" not in public_text
     assert "raw_output" not in public_text

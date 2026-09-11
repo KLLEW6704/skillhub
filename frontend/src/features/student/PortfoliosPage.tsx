@@ -1,13 +1,14 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { AlertCircle, Archive, ChevronDown, Clock3, Compass, ExternalLink, Eye, FileText, FileUp, PencilLine, Plus, RefreshCw, Save, SearchX, ShieldCheck, Trash2, UserRound, Workflow, X } from 'lucide-react'
 import { type FormEvent, useEffect, useRef, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { SecureImage } from '../../components/SecureImage'
 import { apiBlob, apiRequest } from '../../lib/api'
 import { assessmentLabels, visibilityLabels } from '../../lib/status'
 import type { AssessmentRun, Portfolio, PortfolioDraft, Skill } from '../../lib/types'
 
 const evidenceTypes = [
-  ['visual_poster', '视觉海报'], ['data_visualization', '数据可视化'], ['document', '文档'], ['other', '其他作品'],
+  ['visual_poster', '视觉海报'], ['data_visualization', '数据可视化'], ['code_project', '代码项目'], ['document', '内容文档'], ['operations_record', '运营执行记录'],
 ]
 const evidenceTypeLabels = Object.fromEntries(evidenceTypes) as Record<string, string>
 
@@ -81,7 +82,7 @@ function PortfolioAssessment({ portfolio }: { portfolio: Portfolio }) {
       {!latest && <button className="secondary-button" onClick={() => create.mutate()} disabled={!portfolio.ai_supported || !portfolio.ai_processing_consent_at || create.isPending}>发起 AI 观察</button>}
       {latest?.status === 'failed' && <button className="secondary-button" onClick={() => retry.mutate(latest)} disabled={retry.isPending}>重试失败运行</button>}
     </div>
-    {!portfolio.ai_supported && <p className="boundary-note">当前格式可以保存为作品证据，但暂不支持 AI 评估。首期只支持 PNG、JPEG、WebP 静态视觉作品。</p>}
+    {!portfolio.ai_supported && <p className="boundary-note">当前作品类型或文件格式可以保存为证据，但暂不支持 AI 评估。</p>}
     {portfolio.ai_supported && !portfolio.ai_processing_consent_at && <p className="boundary-note">需要先在作品设置中明确同意外部 AI 处理，才能发起评估。</p>}
     {latest?.error && <p className="form-error" role="alert">真实错误：{latest.error}</p>}
     {observation?.structured_result?.observable_facts && <div className="observation-grid">
@@ -288,7 +289,7 @@ export function PortfoliosPage() {
           <fieldset className="evidence-form-section">
             <legend><span>01</span><div><b>作品基本信息</b><small>草稿阶段可以只填写一部分，正式保存前再补完整。</small></div></legend>
             <div className="evidence-form-grid">
-              <label>主要技能<select name="skill_id" required defaultValue={activeDraft?.skill_id ?? ''}><option value="">请选择主要技能</option>{skills.data?.map((skill) => <option value={skill.id} key={skill.id}>{skill.name}</option>)}</select></label>
+              <div className="skill-selector-field"><label>主要技能<select name="skill_id" required defaultValue={activeDraft?.skill_id ?? ''}><option value="">{skills.isLoading ? '正在读取技能…' : skills.data?.length ? '请选择主要技能' : '请先建立一项技能'}</option>{skills.data?.map((skill) => <option value={skill.id} key={skill.id}>{skill.name}</option>)}</select></label><p className="skill-source-note"><span>这里只显示你在“技能管理”中建立的技能。</span><Link to="/student/skills"><Plus size={14} />添加或管理技能</Link></p></div>
               <label>作品类型<select name="evidence_type" defaultValue={activeDraft?.evidence_type ?? 'visual_poster'}>{evidenceTypes.map(([value, label]) => <option value={value} key={value}>{label}</option>)}</select></label>
               <label>作品标题<input name="title" required defaultValue={activeDraft?.title ?? ''} placeholder="例如：迎新季视觉海报" /></label>
               <label>关联技能<select name="related_skill_ids" multiple defaultValue={activeDraft?.related_skill_ids.map(String)}>{skills.data?.map((skill) => <option value={skill.id} key={skill.id}>{skill.name}</option>)}</select><small>可按住 Ctrl 选择多项</small></label>
@@ -307,7 +308,7 @@ export function PortfoliosPage() {
           <fieldset className="evidence-form-section">
             <legend><span>03</span><div><b>文件与权限</b><small>选择原始成果，并决定谁能够看到这份证据。</small></div></legend>
             <div className="asset-permission-grid">
-              <label className="file-upload-card"><span className="file-upload-icon"><FileUp size={22} /></span><b>选择作品文件</b><small>{activeDraft ? '为保护文件安全，草稿不会保留已选文件；正式保存前请重新选择。' : '图片支持 AI 观察；PDF、文档和视频仅保存为证据。'}</small><input name="file" type="file" required accept=".png,.jpg,.jpeg,.webp,.gif,.pdf,.doc,.docx,.ppt,.pptx,.mp4,.webm" onChange={(event) => { const file = event.target.files?.[0]; setPreview(file?.type.startsWith('image/') ? URL.createObjectURL(file) : null) }} /></label>
+              <label className="file-upload-card"><span className="file-upload-icon"><FileUp size={22} /></span><b>选择作品文件</b><small>{activeDraft ? '为保护文件安全，草稿不会保留已选文件；正式保存前请重新选择。' : '视觉作品、数据材料和代码源文件会按对应量表进入 AI 辅助观察。'}</small><input name="file" type="file" required accept=".png,.jpg,.jpeg,.webp,.gif,.pdf,.doc,.docx,.ppt,.pptx,.mp4,.webm,.py,.js,.ts,.tsx,.java,.c,.cpp,.go,.rs,.sql,.ipynb,.json,.md,.txt" onChange={(event) => { const file = event.target.files?.[0]; setPreview(file?.type.startsWith('image/') ? URL.createObjectURL(file) : null) }} /></label>
               <label className="visibility-field"><span className="field-title"><ShieldCheck size={17} />公开范围</span><select name="visibility" defaultValue={activeDraft?.visibility ?? 'private'}>{Object.entries(visibilityLabels).map(([value, label]) => <option value={value} key={value}>{label}</option>)}</select><small>私密作品不会自动出现在技能大厅。</small></label>
               {preview && <img className="local-preview" src={preview} alt="待上传作品预览" />}
               <label className="consent-card check-label wide-field"><input name="ai_processing_consent" type="checkbox" defaultChecked={activeDraft?.ai_processing_consent ?? false} /><span><b>授权 AI 辅助观察</b><small>我明确同意将该作品副本发送给外部 AI 模型处理。AI 结果不会未经人工核验直接公开。</small></span></label>

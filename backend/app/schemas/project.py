@@ -1,12 +1,14 @@
 from datetime import date, datetime
 from decimal import Decimal
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 from app.models.project import AuditStatus, LifecycleStatus
+from app.schemas.collaboration import ProjectPositionCreate, ProjectPositionResponse, ProjectTaskCreate
 
 
 class ProjectCreate(BaseModel):
+    draft_id: int | None = Field(default=None, gt=0)
     title: str = Field(min_length=2, max_length=150)
     description: str = Field(min_length=5, max_length=5000)
     category: str = Field(min_length=1, max_length=80)
@@ -15,6 +17,8 @@ class ProjectCreate(BaseModel):
     required_skills: list[str] = Field(min_length=1, max_length=12)
     deliverables: str | None = Field(default=None, max_length=4000)
     acceptance_criteria: str | None = Field(default=None, max_length=4000)
+    positions: list[ProjectPositionCreate] = Field(default_factory=list, max_length=10)
+    tasks: list[ProjectTaskCreate] = Field(default_factory=list, max_length=30)
 
     @field_validator("required_skills")
     @classmethod
@@ -27,6 +31,15 @@ class ProjectCreate(BaseModel):
         if not result:
             raise ValueError("至少需要一项技能")
         return result
+
+    @model_validator(mode="after")
+    def validate_collaboration_draft(self):
+        codes = [position.code for position in self.positions]
+        if len(codes) != len(set(codes)):
+            raise ValueError("岗位代码不能重复")
+        if any(task.assignee_student_id is not None for task in self.tasks):
+            raise ValueError("发布项目时不能预先指定学生负责人")
+        return self
 
 
 class ProjectUpdate(BaseModel):
@@ -55,6 +68,7 @@ class ProjectResponse(BaseModel):
     required_skills: list[str]
     deliverables: str | None
     acceptance_criteria: str | None
+    positions: list[ProjectPositionResponse] = Field(default_factory=list)
     created_at: datetime
 
 

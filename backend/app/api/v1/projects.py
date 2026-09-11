@@ -7,12 +7,19 @@ from sqlalchemy.orm import Session
 from app.api.deps import get_db, require_roles
 from app.models.project import AuditStatus, LifecycleStatus, Project, ProjectRequiredSkill
 from app.models.user import User, UserRole
+from app.schemas.collaboration import ProjectPlanBrief, ProjectPlanDraft
 from app.schemas.project import ProjectCreate, ProjectPage, ProjectResponse, ProjectUpdate
+from app.services.model_gateway import DashScopeVisionModel
+from app.services.project_planning import generate_plan
 from app.services.projects import create_project, update_project
 
 
 router = APIRouter(prefix="/projects", tags=["projects"])
 requester_only = require_roles(UserRole.requester)
+
+
+def get_planning_model():
+    return DashScopeVisionModel()
 
 
 @router.get("", response_model=ProjectPage)
@@ -34,6 +41,15 @@ def public_projects(keyword: str | None = None, category: str | None = None, ski
 @router.get("/mine", response_model=list[ProjectResponse])
 def mine(current_user: User = Depends(requester_only), db: Session = Depends(get_db)):
     return list(db.scalars(select(Project).where(Project.creator_id == current_user.id)))
+
+
+@router.post("/plan-draft", response_model=ProjectPlanDraft)
+def plan_draft(
+    payload: ProjectPlanBrief,
+    _: User = Depends(requester_only),
+    model=Depends(get_planning_model),
+):
+    return generate_plan(payload, model)
 
 
 @router.post("", response_model=ProjectResponse, status_code=201)

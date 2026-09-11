@@ -39,6 +39,12 @@ class Project(Base):
     delivery_requirements: Mapped["ProjectDeliveryRequirements | None"] = relationship(
         cascade="all, delete-orphan", lazy="selectin", uselist=False
     )
+    positions: Mapped[list["ProjectPosition"]] = relationship(
+        cascade="all, delete-orphan", lazy="selectin", order_by="ProjectPosition.sort_order"
+    )
+    tasks: Mapped[list["ProjectTask"]] = relationship(
+        cascade="all, delete-orphan", lazy="selectin", order_by="ProjectTask.sort_order"
+    )
 
     @property
     def required_skills(self) -> list[str]:

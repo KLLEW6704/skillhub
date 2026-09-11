@@ -47,3 +47,61 @@
 .project-card-delivery p{display:-webkit-box;overflow:hidden;margin:8px 0 0;font-size:14px;line-height:1.65;-webkit-box-orient:vertical;-webkit-line-clamp:2}
 .project-card-link{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-top:auto;padding-top:20px;border-top:1px solid var(--ink);font-size:14px;font-weight:700}
 @media(max-width:760px){.project-archive-page .project-card{grid-template-columns:1fr}.project-archive-page .project-card-main{min-height:0;padding:24px 20px}.project-archive-page .project-card-aside{padding:22px 20px;border-top:1px solid var(--line);border-left:0}.project-card-aside dl{grid-template-columns:1fr 1fr}}
+
+.home-hero{min-height:0;padding:clamp(64px,8vw,120px) clamp(22px,7vw,110px) clamp(54px,7vw,90px)}
+.home-hero:after{content:"项目";right:-.03em;top:45px}
+.home-hero-layout{position:relative;z-index:1;display:grid;grid-template-columns:minmax(0,1.25fr) minmax(340px,.62fr);gap:clamp(46px,7vw,110px);align-items:end;max-width:1600px;margin:0 auto}
+.home-hero-main{min-width:0}
+.home-hero h1{max-width:1050px;font-size:clamp(52px,6vw,96px);line-height:1.08}
+.home-hero .hero-copy{max-width:780px;margin:0;font-size:clamp(16px,1.3vw,19px)}
+.home-hero .hero-actions{align-items:center;flex-wrap:wrap;margin:36px 0 0}
+.hero-text-link{padding:12px 4px;font-size:13px;border-bottom:1px solid transparent}
+.hero-text-link:hover{border-bottom-color:var(--ink)}
+.home-project-panel{background:var(--ink);color:var(--paper-light);padding:clamp(28px,3.2vw,46px);box-shadow:14px 14px 0 rgba(196,135,43,.22)}
+.home-project-panel>p{margin:0;color:#d5a35a;font-size:10px;font-weight:700;letter-spacing:.18em}
+.home-project-panel h2{margin:16px 0 28px;font:700 clamp(25px,2.2vw,34px)/1.4 "Noto Serif SC",serif}
+.home-project-panel ol{margin:0;padding:0;list-style:none;border-top:1px solid rgba(255,255,255,.22)}
+.home-project-panel li{display:grid;grid-template-columns:35px 1fr;gap:12px;padding:16px 0;border-bottom:1px solid rgba(255,255,255,.18)}
+.home-project-panel li>b{color:var(--amber);font-size:12px}
+.home-project-panel li span{display:grid;gap:4px}
+.home-project-panel li strong{font-size:14px}
+.home-project-panel li small{color:#b9c6c1;font-size:12px;line-height:1.6}
+.home-project-panel footer{margin-top:22px;color:#cbd4d0;font-size:12px;line-height:1.8}
+
+.home-section .section-title>p{margin:1px 0 0 12px;color:#667871;font-size:13px}
+.paper-dark .section-title{border-bottom-color:rgba(255,255,255,.24)}
+.paper-dark .section-title>p{color:#b7c4bf}
+.home-project-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;border:0;background:transparent}
+.home-project-grid .project-card{min-height:360px;padding:0;border:1px solid var(--line);transition:transform .2s ease,box-shadow .2s ease}
+.home-project-grid .project-card:hover{transform:translateY(-3px);box-shadow:8px 8px 0 rgba(23,60,50,.08)}
+.home-project-grid .project-card-main{padding:28px}
+.home-project-grid .project-card-main h3{margin-top:30px}
+.home-list-state{padding:54px 24px;border:1px dashed currentColor;text-align:center;color:#6a7a74}
+.paper-dark .home-list-state{color:#b7c4bf}
+.home-talent-grid{margin-top:0}
+.talent-card{display:flex;min-width:0;flex-direction:column;transition:transform .2s ease,box-shadow .2s ease}
+.talent-card:hover{transform:translateY(-3px);box-shadow:8px 8px 0 rgba(23,60,50,.1)}
+.talent-evidence-count{display:block;margin:13px 0 22px;color:#667871}
+.talent-card-skills{margin-top:auto}
+.talent-card-empty{display:block;padding:18px 0;border-top:1px solid var(--line);color:#71807a;font-size:12px}
+.home-talent-section .talent-card{color:var(--ink);border-color:rgba(250,247,237,.35);box-shadow:8px 8px 0 rgba(0,0,0,.16)}
+.home-talent-section .talent-card:hover{box-shadow:12px 12px 0 rgba(196,135,43,.28)}
+
+@media(max-width:1050px){
+  .home-hero-layout{grid-template-columns:1fr;align-items:start}
+  .home-project-panel{max-width:760px}
+  .home-project-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:700px){
+  .home-hero{padding-top:54px}
+  .home-hero:after{top:25px;font-size:150px}
+  .home-hero h1{font-size:clamp(44px,13vw,66px)}
+  .home-hero .hero-actions{align-items:stretch;flex-direction:column}
+  .hero-text-link{text-align:center}
+  .home-project-panel{padding:26px 22px;box-shadow:8px 8px 0 rgba(196,135,43,.22)}
+  .home-section{padding:56px 22px}
+  .home-section .section-title{align-items:flex-start;flex-wrap:wrap}
+  .home-section .section-title>p{width:100%;margin:0;order:3}
+  .home-section .section-title>a{margin-left:auto}
+  .home-project-grid{grid-template-columns:1fr}
+}

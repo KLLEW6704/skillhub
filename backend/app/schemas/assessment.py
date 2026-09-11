@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import BaseModel, ConfigDict, Field
 
 from app.models.assessment import AssessmentStage, AssessmentStatus
 
@@ -18,14 +18,14 @@ RUBRIC_CRITERIA = [
 class EvidencePointer(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
-    source: Literal["image_region", "work_description", "defense_answer"]
+    source: Literal["image_region", "source_file", "work_description", "defense_answer"]
     reference: str = Field(min_length=1, max_length=500)
 
 
 class ObservationEvidencePointer(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
-    source: Literal["image_region", "work_description"]
+    source: Literal["image_region", "source_file", "work_description"]
     reference: str = Field(min_length=1, max_length=500)
 
 
@@ -68,11 +68,6 @@ class RubricResult(BaseModel):
 
     criteria: list[RubricCriterion] = Field(min_length=5, max_length=5)
 
-    @model_validator(mode="after")
-    def validate_fixed_criteria(self):
-        if [item.criterion for item in self.criteria] != RUBRIC_CRITERIA:
-            raise ValueError("量表维度或顺序不符合 visual-poster-v1")
-        return self
 
 
 class DefenseAnswer(BaseModel):

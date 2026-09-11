@@ -6,7 +6,7 @@ import type { Project } from '../lib/types'
 export function ProjectCard({ project, index = 1 }: { project: Project; index?: number }) {
   return <article className="project-card">
     <div className="project-card-main">
-      <div className="project-card-top"><span>PROJECT / {String(index).padStart(2, '0')}</span><span>{project.category}</span></div>
+      <div className="project-card-top"><span>PROJECT / {String(index).padStart(2, '0')}</span><span>{project.category} · {statusLabel(project.lifecycle_status)}</span></div>
       <h3><Link to={`/projects/${project.id}`}>{project.title}</Link></h3>
       <p>{project.description}</p>
       <div className="skill-tags">{project.required_skills.map((skill) => <span key={skill}>{skill}</span>)}</div>
@@ -18,6 +18,7 @@ export function ProjectCard({ project, index = 1 }: { project: Project; index?: 
         <div><dt>申请截止</dt><dd>{project.deadline}</dd></div>
         <div><dt>项目条件</dt><dd>{project.budget ? `¥ ${project.budget}` : '志愿实践'}</dd></div>
       </dl>
+      {!!project.positions?.length && <div className="project-card-positions"><small>开放岗位</small><div>{project.positions.slice(0, 3).map((position) => <span key={position.id}>{position.title} · {position.headcount}人</span>)}</div></div>}
       <div className="project-card-delivery"><small>交付内容</small><p>{project.deliverables || '进入详情查看交付要求'}</p></div>
       <Link className="project-card-link" aria-label={`查看${project.title}完整信息`} to={`/projects/${project.id}`}>查看完整项目 <ArrowUpRight size={18} /></Link>
     </aside>

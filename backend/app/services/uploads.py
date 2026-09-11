@@ -1,3 +1,4 @@
+import json
 from pathlib import Path
 from uuid import uuid4
 from zipfile import BadZipFile, ZipFile, is_zipfile
@@ -19,6 +20,20 @@ ALLOWED_TYPES = {
     ".docx": {"application/vnd.openxmlformats-officedocument.wordprocessingml.document"},
     ".ppt": {"application/vnd.ms-powerpoint"},
     ".pptx": {"application/vnd.openxmlformats-officedocument.presentationml.presentation"},
+    ".py": {"text/plain", "text/x-python", "application/octet-stream"},
+    ".js": {"text/plain", "text/javascript", "application/javascript", "application/octet-stream"},
+    ".ts": {"text/plain", "text/typescript", "application/octet-stream"},
+    ".tsx": {"text/plain", "text/typescript", "application/octet-stream"},
+    ".java": {"text/plain", "text/x-java-source", "application/octet-stream"},
+    ".c": {"text/plain", "text/x-c", "application/octet-stream"},
+    ".cpp": {"text/plain", "text/x-c++src", "application/octet-stream"},
+    ".go": {"text/plain", "text/x-go", "application/octet-stream"},
+    ".rs": {"text/plain", "application/octet-stream"},
+    ".sql": {"text/plain", "application/sql", "application/octet-stream"},
+    ".ipynb": {"application/json", "application/x-ipynb+json", "application/octet-stream"},
+    ".json": {"application/json", "text/plain", "application/octet-stream"},
+    ".md": {"text/markdown", "text/plain", "application/octet-stream"},
+    ".txt": {"text/plain", "application/octet-stream"},
 }
 
 IMAGE_FORMATS = {
@@ -29,6 +44,7 @@ IMAGE_FORMATS = {
 }
 UPLOAD_IMAGE_FORMATS = {**IMAGE_FORMATS, ".gif": "GIF"}
 MAX_IMAGE_PIXELS = 40_000_000
+SOURCE_FORMATS = {".py", ".js", ".ts", ".tsx", ".java", ".c", ".cpp", ".go", ".rs", ".sql", ".ipynb", ".json", ".md", ".txt"}
 
 
 def _invalid_file() -> HTTPException:
@@ -49,6 +65,20 @@ def _validate_saved_file(destination: Path, extension: str) -> None:
             raise
         except (Image.DecompressionBombError, UnidentifiedImageError, OSError, ValueError):
             raise HTTPException(status_code=415, detail="文件内容不是有效图片") from None
+        return
+    if extension in SOURCE_FORMATS:
+        content = destination.read_bytes()
+        if b"\x00" in content:
+            raise _invalid_file()
+        try:
+            decoded = content.decode("utf-8")
+        except UnicodeDecodeError:
+            raise HTTPException(status_code=415, detail="代码和文本文件必须使用 UTF-8 编码") from None
+        if extension in {".json", ".ipynb"}:
+            try:
+                json.loads(decoded)
+            except json.JSONDecodeError:
+                raise _invalid_file() from None
         return
     if extension == ".pdf" and not header.startswith(b"%PDF-"):
         raise _invalid_file()
