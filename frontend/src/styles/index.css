@@ -57,6 +57,17 @@
 .home-hero .hero-actions{align-items:center;flex-wrap:wrap;margin:36px 0 0}
 .hero-text-link{padding:12px 4px;font-size:13px;border-bottom:1px solid transparent}
 .hero-text-link:hover{border-bottom-color:var(--ink)}
+.home-demo-access{max-width:780px;margin-top:28px;padding:18px 20px;border:1px solid var(--line);background:rgba(250,247,237,.72)}
+.home-demo-heading{display:flex;align-items:center;justify-content:space-between;gap:18px;color:var(--amber);font-size:11px;font-weight:700;letter-spacing:.16em}
+.home-demo-heading a{color:var(--ink);font-size:12px;letter-spacing:0;font-weight:600}
+.home-demo-access>p{margin:9px 0 14px;color:#5e7169;font-size:13px;line-height:1.6}
+.home-demo-password{display:flex;align-items:baseline;gap:12px;margin-bottom:13px}
+.home-demo-password span{color:#667871;font-size:12px}
+.home-demo-password strong{font:700 20px/1.2 ui-monospace,SFMono-Regular,Consolas,monospace;letter-spacing:.04em;color:var(--ink)}
+.home-demo-accounts{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}
+.home-demo-accounts div{display:grid;gap:5px;padding-top:10px;border-top:1px solid var(--line)}
+.home-demo-accounts code{font:700 13px/1.2 ui-monospace,SFMono-Regular,Consolas,monospace;color:var(--ink)}
+.home-demo-accounts span{font-size:11px;color:#6b7c75}
 .home-project-panel{background:var(--ink);color:var(--paper-light);padding:clamp(28px,3.2vw,46px);box-shadow:14px 14px 0 rgba(196,135,43,.22)}
 .home-project-panel>p{margin:0;color:#d5a35a;font-size:10px;font-weight:700;letter-spacing:.18em}
 .home-project-panel h2{margin:16px 0 28px;font:700 clamp(25px,2.2vw,34px)/1.4 "Noto Serif SC",serif}
@@ -99,6 +110,7 @@
   .home-hero .hero-actions{align-items:stretch;flex-direction:column}
   .hero-text-link{text-align:center}
   .home-project-panel{padding:26px 22px;box-shadow:8px 8px 0 rgba(196,135,43,.22)}
+  .home-demo-accounts{grid-template-columns:repeat(2,minmax(0,1fr))}
   .home-section{padding:56px 22px}
   .home-section .section-title{align-items:flex-start;flex-wrap:wrap}
   .home-section .section-title>p{width:100%;margin:0;order:3}

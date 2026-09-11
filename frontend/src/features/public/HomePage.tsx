@@ -13,6 +13,14 @@ const projectFlow = [
   ['04', '验收并留下评价', '把真实表现沉淀回学生档案'],
 ]
 
+const demoAccounts = [
+  ['student', '学生端'],
+  ['designer', '设计师学生端'],
+  ['campus_org', '项目方'],
+  ['reviewer', '审核员'],
+  ['admin', '管理员'],
+]
+
 export function HomePage() {
   const projects = useQuery({ queryKey: ['home-projects'], queryFn: () => apiRequest<ProjectPage>('/api/v1/projects?page_size=3') })
   const students = useQuery({ queryKey: ['home-students'], queryFn: () => apiRequest<StudentProfile[]>('/api/v1/profiles/students') })
@@ -31,6 +39,12 @@ export function HomePage() {
             <Link className="secondary-button" to="/talent">寻找技能人才</Link>
             <Link className="hero-text-link" to="/projects">学生查看实践机会 →</Link>
           </div>
+          <aside className="home-demo-access" aria-label="演示账号">
+            <div className="home-demo-heading"><span>DEMO ACCESS</span><Link to="/login">进入登录页 →</Link></div>
+            <p>队员可以直接使用以下账号查看不同角色的演示页面。</p>
+            <div className="home-demo-password"><span>统一密码</span><strong>Student123!</strong></div>
+            <div className="home-demo-accounts">{demoAccounts.map(([username, role]) => <div key={username}><code>{username}</code><span>{role}</span></div>)}</div>
+          </aside>
         </div>
         <aside className="home-project-panel" aria-label="项目推进闭环">
           <p>FOR PROJECT OWNERS / 项目方</p>
